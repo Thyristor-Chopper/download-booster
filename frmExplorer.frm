@@ -108,7 +108,7 @@ Begin VB.Form frmExplorer
          Orientation     =   1
          Divider         =   0   'False
          AllowCustomize  =   0   'False
-         ButtonHeight    =   51
+         ButtonHeight    =   35
          ButtonWidth     =   94
          MinButtonWidth  =   94
          MaxButtonWidth  =   94
@@ -134,7 +134,7 @@ Begin VB.Form frmExplorer
       Width           =   2175
    End
    Begin prjDownloadBooster.ImageCombo cbFolderList 
-      Height          =   330
+      Height          =   315
       Left            =   1680
       TabIndex        =   11
       Top             =   120
@@ -1358,7 +1358,7 @@ folderinaccessible:
 End Sub
 
 Private Sub lvFiles_ItemSelect(Item As LvwListItem, ByVal Selected As Boolean)
-    cmdPreview.Enabled = Selected
+    cmdPreview.Enabled = (Selected And Item.Tag = file)
     
     If Item.Tag = Directory And Tags.BrowseTargetForm = 2 Then
         'If Item.Text <> ".." Then

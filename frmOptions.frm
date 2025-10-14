@@ -1391,7 +1391,6 @@ Dim IntervalValues(7) As Single
 Public ChangedBackgroundPath$
 Dim PreviewControls(4) As Control
 Dim DoLoadTheme As Boolean
-Dim ThemeLoaded As Boolean
 Dim BackgroundParentDir As String
 Dim PatternsSplit() As String
 Dim PatternL As Byte, PatternU As Byte
@@ -1511,7 +1510,17 @@ Private Sub LoadTheme(Optional ByVal ThemeName As String = "")
     If ThemeName = "" Then Section = "Options" Else Section = "Options\Themes\" & ThemeName
     On Error Resume Next
     
+    chkBeepWhenComplete.Value = GetSetting("DownloadBooster", Section, "PlaySound", 1)
     txtCompleteSoundPath.Text = Trim$(GetSetting("DownloadBooster", Section, "CompleteSoundPath", ""))
+    
+    chkAsterisk.Value = GetSetting("DownloadBooster", Section, "EnableAsteriskSound", 1)
+    chkExclamation.Value = GetSetting("DownloadBooster", Section, "EnableExclamationSound", 1)
+    chkError.Value = GetSetting("DownloadBooster", Section, "EnableErrorSound", 1)
+    chkQuestion.Value = GetSetting("DownloadBooster", Section, "EnableQuestionSound", 1)
+    txtAsterisk.Text = GetSetting("DownloadBooster", Section, "AsteriskSound", "")
+    txtExclamation.Text = GetSetting("DownloadBooster", Section, "ExclamationSound", "")
+    txtError.Text = GetSetting("DownloadBooster", Section, "ErrorSound", "")
+    txtQuestion.Text = GetSetting("DownloadBooster", Section, "QuestionSound", "")
     
     Dim clrBackColor As Long
     clrBackColor = GetSetting("DownloadBooster", Section, "BackColor", DefaultBackColor)
@@ -1524,8 +1533,6 @@ Private Sub LoadTheme(Optional ByVal ThemeName As String = "")
     End If
     pbBackground.BackColor = pgColor.BackColor
     pgPatternPreview.BackColor = pgColor.BackColor
-    
-    chkBeepWhenComplete.Value = GetSetting("DownloadBooster", Section, "PlaySound", 1)
     
     cbSkin.ListIndex = GetSetting("DownloadBooster", Section, "ButtonSkin", 4)
     cbFrameSkin.ListIndex = GetSetting("DownloadBooster", Section, "WindowSkin", 0)
@@ -2340,7 +2347,6 @@ End Sub
 Private Sub Form_Load()
     InitForm Me
     
-    ThemeLoaded = False
     Loaded = False
     PatternsSplit = Split("*.jpg;*.jpeg;*.jpe;*.jfif;*.gif;*.bmp;*.dib;*.png;*.wmf;*.emf;*.ico;*.cur;*.tif;*.tiff;*.rle", ";")
     PatternL = LBound(PatternsSplit)
@@ -2598,6 +2604,8 @@ nextcode:
 '    frmDownloadOptions.CancelButton.Visible = 0
 '    frmDownloadOptions.Show
 '    frmDownloadOptions.Move 0, 0
+
+    LoadTheme
     
     Loaded = True
 End Sub
@@ -2696,15 +2704,6 @@ Private Sub LoadSettings()
     
     txtNodePath.Text = GetSetting("DownloadBooster", "Options", "NodePath", "")
     txtYtdlPath.Text = GetSetting("DownloadBooster", "Options", "YtdlPath", "")
-    
-    chkAsterisk.Value = GetSetting("DownloadBooster", "Options", "EnableAsteriskSound", 1)
-    chkExclamation.Value = GetSetting("DownloadBooster", "Options", "EnableExclamationSound", 1)
-    chkError.Value = GetSetting("DownloadBooster", "Options", "EnableErrorSound", 1)
-    chkQuestion.Value = GetSetting("DownloadBooster", "Options", "EnableQuestionSound", 1)
-    txtAsterisk.Text = GetSetting("DownloadBooster", "Options", "AsteriskSound", "")
-    txtExclamation.Text = GetSetting("DownloadBooster", "Options", "ExclamationSound", "")
-    txtError.Text = GetSetting("DownloadBooster", "Options", "ErrorSound", "")
-    txtQuestion.Text = GetSetting("DownloadBooster", "Options", "QuestionSound", "")
     
     tsTabStrip.Tabs(1).Selected = True
     ResetChanged
@@ -2866,11 +2865,6 @@ Private Sub tsTabStrip_TabClick(TabItem As TbsTab)
     Next i
     
     If TabItem.Index = 3 Then
-        If Not ThemeLoaded Then
-            LoadTheme
-            ThemeLoaded = True
-        End If
-    
         DoEvents
         RedrawPreview
     End If
