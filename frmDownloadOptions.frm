@@ -315,38 +315,38 @@ Dim SelectedListItem As LvwListItem
 Public Headers As Collection
 Public HeaderKeys As Collection
 
-Implements IBSSubclass
+'Implements IBSSubclass
 
 Private Sub Form_Unload(Cancel As Integer)
-    IBSSubclass_UnsubclassIt
+    'IBSSubclass_UnsubclassIt
     
     Unload SkinnedFrame
 End Sub
 
-Private Function IBSSubclass_MsgResponse(ByVal hWnd As Long, ByVal uMsg As Long) As EMsgResponse
-    IBSSubclass_MsgResponse = emrConsume
-End Function
-
-Private Sub IBSSubclass_UnsubclassIt()
-    DetachMessage Me, Me.hWnd, WM_SETTINGCHANGE
-    DetachMessage Me, Me.hWnd, WM_THEMECHANGED
-End Sub
-
-Private Function IBSSubclass_WindowProc(ByVal hWnd As Long, ByVal uMsg As Long, ByRef wParam As Long, ByRef lParam As Long, ByRef bConsume As Boolean) As Long
-    On Error Resume Next
- 
-    Select Case uMsg
-        Case WM_SETTINGCHANGE
-            Select Case GetStrFromPtr(lParam)
-                Case "WindowMetrics"
-                    DrawTabBackground Me, tsTabStrip, pbPanel
-            End Select
-        Case WM_THEMECHANGED
-            DrawTabBackground Me, tsTabStrip, pbPanel
-    End Select
-    
-    IBSSubclass_WindowProc = CallOldWindowProc(hWnd, uMsg, wParam, lParam)
-End Function
+'Private Function IBSSubclass_MsgResponse(ByVal hWnd As Long, ByVal uMsg As Long) As EMsgResponse
+'    IBSSubclass_MsgResponse = emrConsume
+'End Function
+'
+'Private Sub IBSSubclass_UnsubclassIt()
+'    DetachMessage Me, Me.hWnd, WM_SETTINGCHANGE
+'    DetachMessage Me, Me.hWnd, WM_THEMECHANGED
+'End Sub
+'
+'Private Function IBSSubclass_WindowProc(ByVal hWnd As Long, ByVal uMsg As Long, ByRef wParam As Long, ByRef lParam As Long, ByRef bConsume As Boolean) As Long
+'    On Error Resume Next
+'
+'    Select Case uMsg
+'        Case WM_SETTINGCHANGE
+'            Select Case GetStrFromPtr(lParam)
+'                Case "WindowMetrics"
+'                    DrawTabBackground Me, tsTabStrip, pbPanel
+'            End Select
+'        Case WM_THEMECHANGED
+'            DrawTabBackground Me, tsTabStrip, pbPanel
+'    End Select
+'
+'    IBSSubclass_WindowProc = CallOldWindowProc(hWnd, uMsg, wParam, lParam)
+'End Function
 
 Private Sub CancelButton_Click()
     Unload Me
@@ -482,11 +482,11 @@ Private Sub Form_Load()
     
     Dim i As Byte
     InitPropertySheetDimensions Me, tsTabStrip, pbPanel, OKButton, CancelButton
-#If HIDEYTDL Then
-    DrawTabBackground Me, tsTabStrip, pbPanel, False
-#Else
-    DrawTabBackground Me, tsTabStrip, pbPanel
-#End If
+'#If HIDEYTDL Then
+'    DrawTabBackground Me, tsTabStrip, pbPanel, False
+'#Else
+'    DrawTabBackground Me, tsTabStrip, pbPanel
+'#End If
     
     On Error Resume Next
     
@@ -589,8 +589,8 @@ Private Sub Form_Load()
     optUseYtdl_Click
 #End If
     
-    AttachMessage Me, Me.hWnd, WM_SETTINGCHANGE
-    AttachMessage Me, Me.hWnd, WM_THEMECHANGED
+'    AttachMessage Me, Me.hWnd, WM_SETTINGCHANGE
+'    AttachMessage Me, Me.hWnd, WM_THEMECHANGED
 End Sub
 
 Sub RemoveYtdlTab()

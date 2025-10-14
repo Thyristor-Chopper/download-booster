@@ -140,6 +140,23 @@ Declare Function ShowWindow Lib "user32" (ByVal hWnd As Long, ByVal nCmdShow As 
 Declare Function BeginDeferWindowPos Lib "user32" (ByVal nNumWindows As Long) As Long
 Declare Function DeferWindowPos Lib "user32" (ByVal hWinPosInfo As Long, ByVal hWnd As Long, ByVal hWndInsertAfter As Long, ByVal X As Long, ByVal Y As Long, ByVal CX As Long, ByVal CY As Long, ByVal uFlags As Long) As Long
 Declare Function EndDeferWindowPos Lib "user32" (ByVal hWinPosInfo As Long) As Long
+Declare Function FindFirstFile Lib "kernel32" Alias "FindFirstFileA" (ByVal lpFileName As String, lpFindFileData As WIN32_FIND_DATA) As Long
+Declare Function FindNextFile Lib "kernel32" Alias "FindNextFileA" (ByVal hFindFile As Long, lpFindFileData As WIN32_FIND_DATA) As Long
+Declare Function FindClose Lib "kernel32" (ByVal hFindFile As Long) As Long
+Public Const INVALID_HANDLE_VALUE As Long = -1&
+
+Type WIN32_FIND_DATA
+    dwFileAttributes As Long
+    ftCreationTime As Currency
+    ftLastAccessTime As Currency
+    ftLastWriteTime As Currency
+    nFileSizeHigh As Long
+    nFileSizeLow As Long
+    dwReserved0 As Long
+    dwReserved1 As Long
+    cFileName As String * 260
+    cAlternate As String * 14
+End Type
 
 Public Const WS_SIZEBOX As Long = &H40000
 
@@ -321,6 +338,7 @@ Public Const WM_CTLCOLORSCROLLBAR As Long = &H137&
 Public Const WM_CTLCOLORSTATIC As Long = &H138&
 Public Const WM_CTLCOLORBTN As Long = &H135&
 Public Const WM_PAINT As Long = &HF&
+Public Const WM_PRINTCLIENT As Long = &H318&
 Public Const hWnd_TOPMOST As Long = -1&
 Public Const hWnd_NOTOPMOST As Long = -2&
 Public Const WM_NCCALCSIZE As Long = &H83&

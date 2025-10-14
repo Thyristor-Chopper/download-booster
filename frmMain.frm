@@ -1971,7 +1971,7 @@ nextln:
     Dim i%
     If BatchStarted Then
         pbTotalProgress.Value = 0
-        For i = 1 To lblDownloader.UBound
+        For i = 1 To lblDownloader.uBound
             pbProgress(i).Value = 0
             lblPercentage(i).Caption = ""
         Next i
@@ -2135,7 +2135,7 @@ Sub OnStop(Optional PlayBeep As Boolean = True)
     
         fTotal.Caption = t(" 전체 다운로드 현황 ", " Total Progress ")
         lblProgress = ""
-        For i = 1 To lblDownloader.UBound
+        For i = 1 To lblDownloader.uBound
             pbProgress(i).Value = 0
             lblPercentage(i).Caption = ""
         Next i
@@ -2706,7 +2706,7 @@ Sub SetBackgroundPosition(Optional ByVal ForceRefresh As Boolean = False)
                 If Width > 0 And Height > 0 Then
                     For i = 1 To Ceil(Me.Height / Height)
                         For j = 1 To Ceil(Me.Width / Width)
-                            If k > imgBackgroundTile.UBound Then _
+                            If k > imgBackgroundTile.uBound Then _
                                 Load imgBackgroundTile(k)
                             If Not (imgBackgroundTile(k).Picture Is imgBackground.Picture) Then
                                 Set imgBackgroundTile(k).Picture = imgBackground.Picture
@@ -2845,7 +2845,7 @@ Sub LoadLiveBadukSkin()
         
         SetFrameTexture
         
-        For i = imgFrame.LBound To imgFrame.UBound
+        For i = imgFrame.lbound To imgFrame.uBound
             imgFrame(i).Visible = (i = fSkin)
         Next i
 
@@ -4166,7 +4166,7 @@ Sub trThreadCount_Scroll()
         lblThreadCount.Caption = "(" & trThreadCount.Value & t("개 스레드", " threads") & ")"
     End If
     Dim i%, bRowVisible As Boolean
-    For i = 1 To lblDownloader.UBound
+    For i = 1 To lblDownloader.uBound
         bRowVisible = (i <= trThreadCount.Value)
         lblDownloader(i).Visible = bRowVisible
         pbProgress(i).Visible = bRowVisible

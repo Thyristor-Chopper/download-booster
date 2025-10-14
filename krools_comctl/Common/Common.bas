@@ -272,13 +272,11 @@ End Sub
 'End If
 'End Function
 
-Public Function FileExists(ByVal PathName As String) As Boolean
-On Error Resume Next
-Dim Attributes As VbFileAttribute, ErrVal As Long
-Attributes = GetAttr(PathName)
-ErrVal = Err.Number
-On Error GoTo 0
-If (Attributes And (vbDirectory Or vbVolume)) = 0 And ErrVal = 0 Then FileExists = True
+Function FileExists(ByVal PathName As String) As Boolean
+    On Error Resume Next
+    Dim Attributes As VbFileAttribute
+    Attributes = GetAttr(PathName)
+    FileExists = ((Attributes And (vbDirectory Or vbVolume)) = 0 And Err.Number = 0)
 End Function
 
 'Public Function AppPath() As String

@@ -91,6 +91,15 @@ Private Sub cmdOK_Click()
     frmOptions.cmdSample.RoundButton = chkRoundClassicButtons.Value
     frmOptions.txtSampleClassic.Visible = chkDisableVisualStyle.Value
     frmOptions.pbSampleClassic.Visible = chkDisableVisualStyle.Value
+    
+    If frmOptions.optUserFore.Value Then
+        frmOptions.CheckBoxW1.VisualStyles = False
+        frmOptions.FrameW5.VisualStyles = False
+    Else
+        frmOptions.CheckBoxW1.VisualStyles = (frmOptions.DisableVisualStyle = 0)
+        frmOptions.FrameW5.VisualStyles = (frmOptions.DisableVisualStyle = 0)
+    End If
+    
     Unload Me
 End Sub
 
