@@ -104,7 +104,10 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
+#If DISABLEFRAMESKIN Then
+#Else
 Public SkinnedFrame As frmSkinnedFrame
+#End If
 
 Dim PrevKeyCode As Integer
 Public HeaderCache As String
@@ -221,7 +224,10 @@ Private Sub Form_Unload(Cancel As Integer)
     
     IBSSubclass_UnsubclassIt
     
+#If DISABLEFRAMESKIN Then
+#Else
     Unload SkinnedFrame
+#End If
 End Sub
 
 Private Function IBSSubclass_MsgResponse(ByVal hWnd As Long, ByVal uMsg As Long) As EMsgResponse

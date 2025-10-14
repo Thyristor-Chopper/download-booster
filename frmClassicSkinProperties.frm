@@ -23,15 +23,13 @@ Begin VB.Form frmSystemSkinProperties
    ScaleWidth      =   4680
    ShowInTaskbar   =   0   'False
    StartUpPosition =   1  '소유자 가운데
-   Begin prjDownloadBooster.CheckBoxW chkDisableVisualStyle 
+   Begin VB.CheckBox chkDisableVisualStyle 
+      Caption         =   "컨트롤에 고전 스타일 사용(&C)"
       Height          =   255
       Left            =   240
       TabIndex        =   1
       Top             =   240
       Width           =   4215
-      _ExtentX        =   7435
-      _ExtentY        =   450
-      Caption         =   "컨트롤에 고전 스타일 사용(&C)"
    End
    Begin prjDownloadBooster.CommandButtonW cmdOK 
       Default         =   -1  'True
@@ -55,15 +53,13 @@ Begin VB.Form frmSystemSkinProperties
       _ExtentY        =   609
       Caption         =   "취소"
    End
-   Begin prjDownloadBooster.CheckBoxW chkRoundClassicButtons 
+   Begin VB.CheckBox chkRoundClassicButtons 
+      Caption         =   "둥근 단추 사용(&U)"
       Height          =   255
       Left            =   240
       TabIndex        =   0
       Top             =   600
       Width           =   4215
-      _ExtentX        =   7435
-      _ExtentY        =   450
-      Caption         =   "둥근 단추 사용(&U)"
    End
 End
 Attribute VB_Name = "frmSystemSkinProperties"
@@ -71,7 +67,10 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+#If DISABLEFRAMESKIN Then
+#Else
 Public SkinnedFrame As frmSkinnedFrame
+#End If
 
 Private Sub chkDisableVisualStyle_Click()
     chkRoundClassicButtons.Enabled = (-chkDisableVisualStyle.Value)
@@ -92,12 +91,12 @@ Private Sub cmdOK_Click()
     frmOptions.txtSampleClassic.Visible = chkDisableVisualStyle.Value
     frmOptions.pbSampleClassic.Visible = chkDisableVisualStyle.Value
     
-    If frmOptions.optUserFore.Value Then
-        frmOptions.CheckBoxW1.VisualStyles = False
-        frmOptions.FrameW5.VisualStyles = False
+    If frmOptions.DisableVisualStyle <> 0 Or frmOptions.optUserFore.Value = True Then
+        RemoveVisualStyles frmOptions.CheckBoxW1.hWnd
+        RemoveVisualStyles frmOptions.FrameW5.hWnd
     Else
-        frmOptions.CheckBoxW1.VisualStyles = (frmOptions.DisableVisualStyle = 0)
-        frmOptions.FrameW5.VisualStyles = (frmOptions.DisableVisualStyle = 0)
+        ActivateVisualStyles frmOptions.CheckBoxW1.hWnd
+        ActivateVisualStyles frmOptions.FrameW5.hWnd
     End If
     
     Unload Me
@@ -128,5 +127,8 @@ Private Sub Form_Load()
 End Sub
 
 Private Sub Form_Unload(Cancel As Integer)
+#If DISABLEFRAMESKIN Then
+#Else
     Unload SkinnedFrame
+#End If
 End Sub

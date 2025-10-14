@@ -69,16 +69,14 @@ Begin VB.Form frmAbout
       MaskColor       =   16711935
       InitListImages  =   "frmAbout.frx":000C
    End
-   Begin prjDownloadBooster.FrameW FrameW1 
+   Begin VB.Frame FrameW1 
+      BorderStyle     =   0  '없음
+      Caption         =   "라이선스(&L)"
       Height          =   3255
       Left            =   1080
       TabIndex        =   5
       Top             =   1440
       Width           =   6375
-      _ExtentX        =   11245
-      _ExtentY        =   5741
-      BorderStyle     =   0
-      Caption         =   "라이선스(&L)"
       Begin prjDownloadBooster.ListView lvItems 
          Height          =   3255
          Left            =   0
@@ -140,7 +138,10 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
+#If DISABLEFRAMESKIN Then
+#Else
 Public SkinnedFrame As frmSkinnedFrame
+#End If
 
 Dim ScrollBars(1 To 7) As Byte
 
@@ -190,7 +191,10 @@ Private Sub Form_Load()
 End Sub
 
 Private Sub Form_Unload(Cancel As Integer)
+#If DISABLEFRAMESKIN Then
+#Else
     Unload SkinnedFrame
+#End If
 End Sub
 
 Private Sub lvItems_ItemSelect(Item As LvwListItem, ByVal Selected As Boolean)

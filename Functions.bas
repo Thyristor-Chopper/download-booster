@@ -107,15 +107,15 @@ Declare Function TerminateProcess Lib "kernel32" (ByVal hProcess As Long, ByVal 
 Private Declare Function CloseHandle Lib "kernel32" (ByVal hObject As Long) As Long
 'Declare Function ExitProcess Lib "kernel32" (ByVal ExitCode As Long) As Long
 Declare Function DeleteObject Lib "gdi32" (ByVal hObject As Long) As Long
-'Declare Function RedrawWindow Lib "user32" (ByVal hWnd As Long, ByVal lprcUpdate As Long, ByVal hrgnUpdate As Long, ByVal fuRedraw As Long) As Long
-'Declare Function SetBkMode Lib "gdi32" (ByVal hDC As Long, ByVal nBkMode As Long) As Long
+Declare Function RedrawWindow Lib "user32" (ByVal hWnd As Long, ByVal lprcUpdate As Long, ByVal hrgnUpdate As Long, ByVal fuRedraw As Long) As Long
+Declare Function SetBkMode Lib "gdi32" (ByVal hDC As Long, ByVal nBkMode As Long) As Long
 Declare Function CreateCompatibleDC Lib "gdi32" (ByVal hDC As Long) As Long
 'Declare Function CreateCompatibleBitmap Lib "gdi32" (ByVal hDC As Long, ByVal nWidth As Long, ByVal nHeight As Long) As Long
-'Declare Function SetLayout Lib "gdi32" (ByVal hDC As Long, ByVal dwLayout As Long) As Long
+Declare Function SetLayout Lib "gdi32" (ByVal hDC As Long, ByVal dwLayout As Long) As Long
 Declare Function SelectObject Lib "gdi32" (ByVal hDC As Long, ByVal hObject As Long) As Long
-'Declare Function MapWindowPoints Lib "user32" (ByVal hWndFrom As Long, ByVal hWndTo As Long, ByRef lppt As Any, ByVal cPoints As Long) As Long
-'Declare Function SetViewportOrgEx Lib "gdi32" (ByVal hDC As Long, ByVal X As Long, ByVal Y As Long, ByRef lpPoint As POINTAPI) As Long
-'Declare Function CreatePatternBrush Lib "gdi32" (ByVal hBitmap As Long) As Long
+Declare Function MapWindowPoints Lib "user32" (ByVal hWndFrom As Long, ByVal hWndTo As Long, ByRef lppt As Any, ByVal cPoints As Long) As Long
+Declare Function SetViewportOrgEx Lib "gdi32" (ByVal hDC As Long, ByVal X As Long, ByVal Y As Long, ByRef lpPoint As POINTAPI) As Long
+Declare Function CreatePatternBrush Lib "gdi32" (ByVal hBitmap As Long) As Long
 Declare Function DeleteDC Lib "gdi32" (ByVal hDC As Long) As Long
 Private Declare Function CreateFile Lib "kernel32" Alias "CreateFileA" (ByVal lpFileName As String, ByVal dwDesiredAccess As Long, ByVal dwShareMode As Long, ByVal lpSecurityAttributes As Long, ByVal dwCreationDisposition As Long, ByVal dwFlagsAndAttributes As Long, ByVal hTemplateFile As Long) As Long
 Private Declare Function GetFileTime Lib "kernel32" (ByVal hFile As Long, lpCreationTime As Any, lpLastAccessTime As Any, lpLastWriteTime As Any) As Long
@@ -802,19 +802,19 @@ Sub SetFormBackgroundColor(frmForm As Form, Optional DisableClassicTheme As Bool
     On Error Resume Next
     Dim ctrl As Control
     For Each ctrl In frmForm.Controls
-        If TypeOf ctrl Is DriveListBox Or TypeOf ctrl Is FileListBox Or TypeOf ctrl Is DirListBox Or TypeOf ctrl Is TextBox Or TypeOf ctrl Is ComboBox Or TypeOf ctrl Is ImageCombo Or TypeOf ctrl Is ToolBar Or TypeOf ctrl Is PictureBox Or TypeOf ctrl Is Label Or TypeOf ctrl Is TabStrip Or TypeOf ctrl Is Slider Or TypeOf ctrl Is OptionButton Or TypeOf ctrl Is ProgressBar Or TypeOf ctrl Is FrameW Or TypeOf ctrl Is CommandButton Or TypeOf ctrl Is CommandButtonW Or TypeOf ctrl Is CheckBoxW Or TypeOf ctrl Is StatusBar Or TypeOf ctrl Is ListView Or TypeOf ctrl Is ListBox Then
+        If TypeOf ctrl Is CheckBox Or TypeOf ctrl Is Frame Or TypeOf ctrl Is DriveListBox Or TypeOf ctrl Is FileListBox Or TypeOf ctrl Is DirListBox Or TypeOf ctrl Is TextBox Or TypeOf ctrl Is ComboBox Or TypeOf ctrl Is ImageCombo Or TypeOf ctrl Is ToolBar Or TypeOf ctrl Is PictureBox Or TypeOf ctrl Is Label Or TypeOf ctrl Is TabStrip Or TypeOf ctrl Is Slider Or TypeOf ctrl Is OptionButton Or TypeOf ctrl Is ProgressBar Or TypeOf ctrl Is FrameW Or TypeOf ctrl Is CommandButton Or TypeOf ctrl Is CommandButtonW Or TypeOf ctrl Is CheckBoxW Or TypeOf ctrl Is StatusBar Or TypeOf ctrl Is ListView Or TypeOf ctrl Is ListBox Then
             If TypeOf ctrl Is CommandButtonW And ctrl.Tag <> "notygchange" Then
                 ctrl.IsTygemButton = CurrentButtonSkin > 0
                 If CurrentButtonSkin = 0 Then ctrl.Refresh Else ctrl.GetTygemButton().Skin = CurrentButtonSkin
             End If
             If ctrl.Tag <> "novisualstylechange" And ctrl.Tag <> "nobackcolorchange novisualstylechange" Then
-                If TypeOf ctrl Is CommandButton Or TypeOf ctrl Is DriveListBox Or TypeOf ctrl Is FileListBox Or TypeOf ctrl Is DirListBox Or TypeOf ctrl Is TextBox Or TypeOf ctrl Is ComboBox Then
+                If TypeOf ctrl Is CommandButton Or TypeOf ctrl Is DriveListBox Or TypeOf ctrl Is FileListBox Or TypeOf ctrl Is DirListBox Or TypeOf ctrl Is TextBox Or TypeOf ctrl Is ComboBox Or TypeOf ctrl Is CheckBox Or TypeOf ctrl Is Frame Then
                     If DisableVisualStyle Then
                         RemoveVisualStyles ctrl.hWnd
-                        If TypeOf ctrl Is CommandButton Then ctrl.Style = 1
+                        'If TypeOf ctrl Is CommandButton Then ctrl.Style = 1
                     Else
                         ActivateVisualStyles ctrl.hWnd
-                        If TypeOf ctrl Is CommandButton Then ctrl.Style = 0
+                        'If TypeOf ctrl Is CommandButton Then ctrl.Style = 0
                     End If
                 Else
                     If (Not DisableVisualStyle) Then
@@ -849,7 +849,9 @@ Sub SetFormBackgroundColor(frmForm As Form, Optional DisableClassicTheme As Bool
             End If
             If ctrl.Tag <> "nobackcolorchange" And ctrl.Tag <> "nobackcolorchange novisualstylechange" And ctrl.BackColor <> clrBackColor Then
                 ctrl.BackColor = clrBackColor
-                If TypeOf ctrl Is CheckBoxW Or TypeOf ctrl Is FrameW Then ctrl.Refresh
+                If TypeOf ctrl Is CheckBoxW Or TypeOf ctrl Is FrameW Then
+                    If ctrl.Transparent Then ctrl.Refresh
+                End If
             End If
         End If
 nextfor:
@@ -2296,11 +2298,14 @@ Sub InitForm(ByRef frmForm As Form)
     SetFont frmForm
     If MainFormOnTop Then SetWindowPos frmForm.hWnd, hWnd_TOPMOST, 0&, 0&, 0&, 0&, SWP_NOMOVE Or SWP_NOSIZE
     'If frmForm.BorderStyle = 2 Then Set frmForm.Icon = frmMain.Icon
+#If DISABLEFRAMESKIN Then
+#Else
     On Error GoTo noskin
     Set frmForm.SkinnedFrame = New frmSkinnedFrame
     frmForm.SkinnedFrame.Init frmForm
 noskin:
     'On Error Resume Next
+#End If
 End Sub
 
 Function GenerateSolidColor(ByVal Color As Long) As IPictureDisp
@@ -2345,22 +2350,34 @@ Function CreatePicture(Handle As Long, PicType As Long) As IPicture
     OleCreatePictureIndirect uDesc, IPictureIID, True, CreatePicture
 End Function
 
-Sub ShellGetFileInfo(Path As String, UseFileAttributes As Boolean, ByRef LargeIcon As IPicture, ByRef SmallIcon As IPicture, ByRef TypeName As String)
+'Sub ShellGetFileInfo(Path As String, UseFileAttributes As Boolean, ByRef LargeIcon As IPicture, ByRef SmallIcon As IPicture, ByRef TypeName As String)
+'    Dim SFI As SHFILEINFO
+'    Dim PathPtr&, SfiPtr&, SfiSize&
+'    Dim FlagUFA As Long
+'    PathPtr = StrPtr(Path)
+'    SfiPtr = VarPtr(SFI)
+'    SfiSize = LenB(SFI)
+'    FlagUFA = (-UseFileAttributes) * SHGFI_USEFILEATTRIBUTES
+'
+'    If SHGetFileInfo(PathPtr, 0&, SfiPtr, SfiSize, FlagUFA Or SHGFI_ICON Or SHGFI_LARGEICON Or SHGFI_TYPENAME) = 0 Then GoTo onfail
+'    TypeName = SFI.szTypeName
+'    Set LargeIcon = CreatePicture(SFI.hIcon, vbPicTypeIcon)
+'    SHGetFileInfo PathPtr, 0&, SfiPtr, SfiSize, FlagUFA Or SHGFI_ICON Or SHGFI_SMALLICON
+'    Set SmallIcon = CreatePicture(SFI.hIcon, vbPicTypeIcon)
+'onfail:
+'End Sub
+
+Function GetExtensionDescription(Path As String) As String
     Dim SFI As SHFILEINFO
     Dim PathPtr&, SfiPtr&, SfiSize&
-    Dim FlagUFA As Long
     PathPtr = StrPtr(Path)
     SfiPtr = VarPtr(SFI)
     SfiSize = LenB(SFI)
-    FlagUFA = (-UseFileAttributes) * SHGFI_USEFILEATTRIBUTES
     
-    If SHGetFileInfo(PathPtr, 0&, SfiPtr, SfiSize, FlagUFA Or SHGFI_ICON Or SHGFI_LARGEICON Or SHGFI_TYPENAME) = 0 Then GoTo onfail
-    TypeName = SFI.szTypeName
-    Set LargeIcon = CreatePicture(SFI.hIcon, vbPicTypeIcon)
-    SHGetFileInfo PathPtr, 0&, SfiPtr, SfiSize, FlagUFA Or SHGFI_ICON Or SHGFI_SMALLICON
-    Set SmallIcon = CreatePicture(SFI.hIcon, vbPicTypeIcon)
+    If SHGetFileInfo(PathPtr, 0&, SfiPtr, SfiSize, SHGFI_USEFILEATTRIBUTES Or SHGFI_TYPENAME) = 0 Then GoTo onfail
+    GetExtensionDescription = SFI.szTypeName
 onfail:
-End Sub
+End Function
 
 Sub InitPropertySheetDimensions(frmForm As Form, tsTabStrip As TabStrip, Panels As Object, OKButton As CommandButtonW, CancelButton As CommandButtonW, Optional ApplyButton As CommandButtonW)
     Dim i As Byte

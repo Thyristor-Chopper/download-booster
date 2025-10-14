@@ -1,9 +1,9 @@
 VERSION 5.00
 Begin VB.UserControl CommandButton 
-   ClientHeight    =   1755
+   ClientHeight    =   1005
    ClientLeft      =   0
    ClientTop       =   0
-   ClientWidth     =   2310
+   ClientWidth     =   1770
    DefaultCancel   =   -1  'True
    BeginProperty Font 
       Name            =   "±¼¸²"
@@ -14,8 +14,16 @@ Begin VB.UserControl CommandButton
       Italic          =   0   'False
       Strikethrough   =   0   'False
    EndProperty
-   ScaleHeight     =   1755
-   ScaleWidth      =   2310
+   ScaleHeight     =   1005
+   ScaleWidth      =   1770
+   Begin VB.CommandButton cmdButton 
+      Caption         =   "Command1"
+      Height          =   375
+      Left            =   0
+      TabIndex        =   1
+      Top             =   0
+      Width           =   1575
+   End
    Begin prjDownloadBooster.TygemButton tygButton 
       Height          =   375
       Left            =   0
@@ -26,22 +34,6 @@ Begin VB.UserControl CommandButton
       Width           =   1575
       _ExtentX        =   2778
       _ExtentY        =   661
-      Caption         =   "Command1"
-   End
-   Begin VB.CommandButton cmdButton 
-      Caption         =   "Command1"
-      Height          =   375
-      Left            =   0
-      TabIndex        =   1
-      Top             =   0
-      Width           =   1575
-   End
-   Begin prjDownloadBooster.ImageList imgIcon 
-      Left            =   120
-      Top             =   1080
-      _ExtentX        =   1005
-      _ExtentY        =   1005
-      InitListImages  =   "CommandButton.ctx":0000
    End
 End
 Attribute VB_Name = "CommandButton"
@@ -55,7 +47,6 @@ Implements IBSSubclass
 
 Private Declare Function ActivateVisualStyles Lib "uxtheme.dll" Alias "SetWindowTheme" (ByVal hWnd As Long, Optional ByVal pszSubAppName As Long = 0&, Optional ByVal pszSubIdList As Long = 0&) As Long
 Private Declare Function DeactivateVisualStyles Lib "uxtheme.dll" Alias "SetWindowTheme" (ByVal hWnd As Long, Optional ByRef pszSubAppName As String = " ", Optional ByRef pszSubIdList As String = " ") As Long
-Private Declare Sub InitCommonControls Lib "comctl32.dll" ()
 Private Declare Function SendMessage Lib "user32.dll" Alias "SendMessageA" (ByVal hWnd As Long, ByVal wMsg As Long, ByVal wParam As Long, lParam As Any) As Long
 Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal pDestination As Long, ByVal pSource As Long, ByVal Length As Long)
 Private Declare Function GetWindowLong Lib "user32" Alias "GetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long) As Long
@@ -112,7 +103,7 @@ Dim m_Transparent As Boolean
 Const m_def_IconPosition = IconAlignment.IconAlignmentLeft
 Dim m_IconPosition As IconAlignment
 
-Dim m_Icon As IPictureDisp
+Dim m_ImageList As ImageList
 
 Dim m_Font As StdFont
 
@@ -232,34 +223,22 @@ Private Sub SetCaption()
     tygButton.Caption = m_Caption
 End Sub
 
-Property Get Icon() As IPictureDisp
-    Set Icon = m_Icon
+Property Get ImageList() As ImageList
+    Set ImageList = m_ImageList
 End Property
 
-Property Set Icon(ByVal New_Icon As IPictureDisp)
-    Set m_Icon = New_Icon
-    PropertyChanged "Icon"
-    SetIcon
-End Property
-
-Private Sub SetIcon()
+Property Set ImageList(New_ImageList As ImageList)
+    Set m_ImageList = New_ImageList
     SetImageList
-    If imgIcon.ListImages.Count > 0 Then Set tygButton.ButtonIcon = imgIcon.ListImages(1).ExtractIcon Else Set tygButton.ButtonIcon = Nothing
-End Sub
+End Property
 
 Private Sub SetImageList()
-    imgIcon.ListImages.Clear
-    If m_Icon Is Nothing Then
+    If m_ImageList Is Nothing Then
         SendMessage cmdButton.hWnd, BM_SETIMAGE, IMAGE_BITMAP, ByVal 0&
         SendMessage cmdButton.hWnd, BM_SETIMAGE, IMAGE_ICON, ByVal 0&
     Else
-        imgIcon.ImageWidth = 16
-        imgIcon.ImageHeight = 16
-        imgIcon.ColorDepth = ImlColorDepth32Bit
-        imgIcon.MaskColor = vbMagenta
-        imgIcon.ListImages.Add Picture:=m_Icon
         Dim BTNIML As BUTTON_IMAGELIST
-        BTNIML.hImageList = imgIcon.hImageList
+        BTNIML.hImageList = m_ImageList.hImageList
         If m_IconPosition = IconAlignmentLeft Then
             BTNIML.RCMargin.Left = 0
         ElseIf IconAlignmentRight Then
@@ -315,7 +294,7 @@ End Property
 
 Private Sub SetBackColor()
     cmdButton.BackColor = m_BackColor
-    tygButton.BackColor = m_BackColor
+    'tygButton.BackColor = m_BackColor
 End Sub
 
 Private Sub cmdButton_Click()
@@ -432,8 +411,6 @@ Private Sub UserControl_Initialize()
     tygButton.Top = 0
     tygButton.Left = 0
     
-    InitCommonControls
-    
     AttachMessage Me, UserControl.hWnd, WM_CTLCOLORSTATIC
     AttachMessage Me, UserControl.hWnd, WM_CTLCOLORBTN
 End Sub
@@ -442,7 +419,7 @@ Private Sub UserControl_InitProperties()
     m_Enabled = m_def_Enabled
     m_Caption = Ambient.DisplayName
     m_BackColor = m_def_BackColor
-    Set m_Icon = Nothing
+    Set m_ImageList = Nothing
     m_IsTygemButton = m_def_IsTygemButton
     cmdButton.Caption = m_Caption
     tygButton.Caption = m_Caption
@@ -461,22 +438,20 @@ Private Sub UserControl_Resize()
     cmdButton.Width = UserControl.Width
     tygButton.Width = UserControl.Width
     
-    If (Not m_IsTygemButton) And m_Transparent Then
-        If CommandButtonTransparentBrush Then
-            DeleteObject CommandButtonTransparentBrush
-            CommandButtonTransparentBrush = 0&
-        End If
-        RedrawWindow cmdButton.hWnd, 0&, 0&, RDW_UPDATENOW Or RDW_INVALIDATE Or RDW_ERASE
-    End If
-    
-    SetRgn
+'    If (Not m_IsTygemButton) And m_Transparent Then
+'        If CommandButtonTransparentBrush Then
+'            DeleteObject CommandButtonTransparentBrush
+'            CommandButtonTransparentBrush = 0&
+'        End If
+'        RedrawWindow cmdButton.hWnd, 0&, 0&, RDW_UPDATENOW Or RDW_INVALIDATE Or RDW_ERASE
+'    End If
 End Sub
 
 Private Sub UserControl_ReadProperties(PropBag As PropertyBag)
     m_Enabled = PropBag.ReadProperty("Enabled", m_def_Enabled)
     m_Caption = PropBag.ReadProperty("Caption", Ambient.DisplayName)
     m_BackColor = PropBag.ReadProperty("BackColor", m_def_BackColor)
-    Set m_Icon = PropBag.ReadProperty("Icon", Nothing)
+    Set m_ImageList = PropBag.ReadProperty("ImageList", Nothing)
     m_IconPosition = PropBag.ReadProperty("IconPosition", m_def_IconPosition)
     m_IsTygemButton = PropBag.ReadProperty("IsTygemButton", m_def_IsTygemButton)
     m_VisualStyles = PropBag.ReadProperty("VisualStyles", m_def_VisualStyles)
@@ -487,7 +462,7 @@ Private Sub UserControl_ReadProperties(PropBag As PropertyBag)
     SetEnabled
     SetCaption
     SetBackColor
-    SetIcon
+    SetImageList
     SetIsTygemButton
     SetVisualStyles
     SetFont
@@ -509,7 +484,7 @@ Private Sub UserControl_WriteProperties(PropBag As PropertyBag)
     Call PropBag.WriteProperty("Enabled", m_Enabled, m_def_Enabled)
     Call PropBag.WriteProperty("Caption", m_Caption, Ambient.DisplayName)
     Call PropBag.WriteProperty("BackColor", m_BackColor, m_def_BackColor)
-    Call PropBag.WriteProperty("Icon", m_Icon, Nothing)
+    Call PropBag.WriteProperty("ImageList", m_ImageList, Nothing)
     Call PropBag.WriteProperty("IsTygemButton", m_IsTygemButton, m_def_IsTygemButton)
     Call PropBag.WriteProperty("VisualStyles", m_VisualStyles, m_def_VisualStyles)
     Call PropBag.WriteProperty("Font", m_Font, Nothing)
@@ -595,7 +570,3 @@ Private Sub SetRgn()
         SetWindowRgn UserControl.hWnd, 0&, True
     End If
 End Sub
-
-Function GetImageList() As ImageList
-    Set GetImageList = imgIcon
-End Function

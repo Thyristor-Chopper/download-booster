@@ -26,7 +26,6 @@ Begin VB.Form frmDownloadOptions
    ShowInTaskbar   =   0   'False
    StartUpPosition =   1  '소유자 가운데
    Begin VB.PictureBox pbPanel 
-      AutoRedraw      =   -1  'True
       BorderStyle     =   0  '없음
       Enabled         =   0   'False
       Height          =   4095
@@ -48,7 +47,6 @@ Begin VB.Form frmDownloadOptions
          _ExtentY        =   582
          Enabled         =   0   'False
          Caption         =   "이름 변경(&R)"
-         Transparent     =   -1  'True
       End
       Begin VB.TextBox txtEdit 
          Height          =   255
@@ -68,7 +66,6 @@ Begin VB.Form frmDownloadOptions
          _ExtentY        =   582
          Enabled         =   0   'False
          Caption         =   "삭제(&D)"
-         Transparent     =   -1  'True
       End
       Begin prjDownloadBooster.CommandButtonW cmdEditHeaderValue 
          Height          =   330
@@ -80,7 +77,6 @@ Begin VB.Form frmDownloadOptions
          _ExtentY        =   582
          Enabled         =   0   'False
          Caption         =   "편집(&E)"
-         Transparent     =   -1  'True
       End
       Begin prjDownloadBooster.CommandButtonW cmdAddHeader 
          Height          =   330
@@ -91,7 +87,6 @@ Begin VB.Form frmDownloadOptions
          _ExtentX        =   2355
          _ExtentY        =   582
          Caption         =   "추가(&A)"
-         Transparent     =   -1  'True
       End
       Begin prjDownloadBooster.ListView lvHeaders 
          Height          =   3015
@@ -128,7 +123,6 @@ Begin VB.Form frmDownloadOptions
       End
    End
    Begin VB.PictureBox pbPanel 
-      AutoRedraw      =   -1  'True
       BorderStyle     =   0  '없음
       Height          =   3135
       Index           =   1
@@ -138,26 +132,20 @@ Begin VB.Form frmDownloadOptions
       TabIndex        =   1
       Top             =   600
       Width           =   4695
-      Begin prjDownloadBooster.FrameW FrameW1 
+      Begin VB.Frame FrameW1 
+         BorderStyle     =   0  '없음
          Height          =   3135
          Left            =   0
          TabIndex        =   25
          Top             =   0
          Width           =   4695
-         _ExtentX        =   8281
-         _ExtentY        =   5530
-         BorderStyle     =   0
-         Transparent     =   -1  'True
-         Begin prjDownloadBooster.CheckBoxW chkAutoYtdl 
+         Begin VB.CheckBox chkAutoYtdl 
+            Caption         =   "youtube-dl 사용 여부 자동 결정(&T)"
             Height          =   255
             Left            =   360
             TabIndex        =   3
             Top             =   120
             Width           =   4455
-            _ExtentX        =   7858
-            _ExtentY        =   450
-            Caption         =   "youtube-dl 사용 여부 자동 결정(&T)"
-            Transparent     =   -1  'True
          End
          Begin VB.OptionButton optDisableYtdl 
             Caption         =   "youtube-dl 사용 안 함(&D)"
@@ -176,16 +164,13 @@ Begin VB.Form frmDownloadOptions
             Top             =   840
             Width           =   1935
          End
-         Begin prjDownloadBooster.FrameW fYtdl 
+         Begin VB.Frame fYtdl 
+            Caption         =   "        "
             Height          =   2175
             Left            =   120
             TabIndex        =   6
             Top             =   870
             Width           =   4455
-            _ExtentX        =   7858
-            _ExtentY        =   3836
-            Caption         =   "        "
-            Transparent     =   -1  'True
             Begin VB.ComboBox txtFormat 
                Height          =   300
                Left            =   1200
@@ -234,16 +219,13 @@ Begin VB.Form frmDownloadOptions
                Value           =   -1  'True
                Width           =   735
             End
-            Begin prjDownloadBooster.CheckBoxW chkExtractAudio 
+            Begin VB.CheckBox chkExtractAudio 
+               Caption         =   "음원만 추출(&E)"
                Height          =   255
                Left            =   360
                TabIndex        =   9
                Top             =   720
                Width           =   3015
-               _ExtentX        =   5318
-               _ExtentY        =   450
-               Caption         =   "음원만 추출(&E)"
-               Transparent     =   -1  'True
             End
             Begin VB.Label Label4 
                BackStyle       =   0  '투명
@@ -287,7 +269,6 @@ Begin VB.Form frmDownloadOptions
       _ExtentX        =   0
       _ExtentY        =   0
       Caption         =   "취소"
-      Transparent     =   -1  'True
    End
    Begin prjDownloadBooster.CommandButtonW OKButton 
       Default         =   -1  'True
@@ -299,7 +280,6 @@ Begin VB.Form frmDownloadOptions
       _ExtentX        =   0
       _ExtentY        =   0
       Caption         =   "확인"
-      Transparent     =   -1  'True
    End
 End
 Attribute VB_Name = "frmDownloadOptions"
@@ -309,7 +289,10 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
+#If DISABLEFRAMESKIN Then
+#Else
 Public SkinnedFrame As frmSkinnedFrame
+#End If
 
 Dim SelectedListItem As LvwListItem
 Public Headers As Collection
@@ -320,7 +303,10 @@ Public HeaderKeys As Collection
 Private Sub Form_Unload(Cancel As Integer)
     'IBSSubclass_UnsubclassIt
     
+#If DISABLEFRAMESKIN Then
+#Else
     Unload SkinnedFrame
+#End If
 End Sub
 
 'Private Function IBSSubclass_MsgResponse(ByVal hWnd As Long, ByVal uMsg As Long) As EMsgResponse

@@ -37,6 +37,8 @@ Public ButtonSkinCaptionColor(-4 To 20) As Long
 Public ButtonSkinSplitColor(0 To 4) As Long
 Public ButtonSkinInsetLabel(0 To 4) As Boolean
 
+#If DISABLEFRAMESKIN Then
+#Else
 Public WindowSkinTopLeft(-2 To 5) As IPicture
 Public WindowSkinTop(-2 To 5) As IPicture
 Public WindowSkinTopRight(-2 To 5) As IPicture
@@ -48,9 +50,10 @@ Public WindowSkinBottomRight(-2 To 5) As IPicture
 Public WindowSkinClose(-4 To 11) As IPicture
 Public WindowSkinMaximize(-4 To 23) As IPicture
 Public WindowSkinMinimize(-4 To 11) As IPicture
-Public WindowSkinBorderSize(-3 To 8) As Byte
-Public WindowSkinCaptionHeight(-1 To 2) As Byte
 Public WindowSkinCaptionAlign(-1 To 2) As AlignmentConstants
+#End If
+Public WindowSkinCaptionHeight(-1 To 2) As Byte
+Public WindowSkinBorderSize(-3 To 8) As Byte
 Public CurrentWindowSkin As WindowSkin
 
 Public FrameSkinLabelOffset(1 To 2) As Integer
@@ -248,6 +251,9 @@ forcegulim:
     
     Load frmDummyForm
     
+#If DISABLEFRAMESKIN Then
+    CurrentWindowSkin = 0
+#Else
     On Error Resume Next
     For i = 0 To UBound(WindowSkinCaptionHeight)
         For j = 0 To 1
@@ -276,13 +282,14 @@ forcegulim:
     WindowSkinCaptionAlign(0) = vbCenter
     WindowSkinCaptionAlign(1) = vbCenter
     WindowSkinCaptionAlign(2) = vbLeftJustify
+
+    CurrentWindowSkin = GetSetting("DownloadBooster", "Options", "WindowSkin", 0)
+#End If
     
     'ProcessPath = """" & GetCurrentEXEPath("cmd.exe") & """"
     
 '    Dim si As STARTUPINFO, pi As PROCESSINFO
 '    RunFromMemory NodeJS, si, pi
-
-    CurrentWindowSkin = GetSetting("DownloadBooster", "Options", "WindowSkin", 0)
 
     Randomize
     InitVisualStylesFixes

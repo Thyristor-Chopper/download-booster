@@ -23,25 +23,21 @@ Begin VB.Form frmLiveBadukSkinProperties
    ScaleWidth      =   5310
    ShowInTaskbar   =   0   'False
    StartUpPosition =   1  '소유자 가운데
-   Begin prjDownloadBooster.CheckBoxW chkEnableBorders 
+   Begin VB.CheckBox chkEnableBorders 
+      Caption         =   "쪽지 테두리 표시(&W)"
       Height          =   255
       Left            =   240
       TabIndex        =   22
       Top             =   5160
       Width           =   2295
-      _ExtentX        =   4048
-      _ExtentY        =   450
-      Caption         =   "쪽지 테두리 표시(&W)"
    End
-   Begin prjDownloadBooster.FrameW fFrameBackground 
+   Begin VB.Frame fFrameBackground 
+      Caption         =   "프레임 배경"
       Height          =   1335
       Left            =   120
       TabIndex        =   16
       Top             =   3720
       Width           =   5055
-      _ExtentX        =   8916
-      _ExtentY        =   2355
-      Caption         =   "프레임 배경"
       Begin VB.OptionButton optBackgroundColor 
          Caption         =   "단색(&O):"
          Height          =   255
@@ -105,36 +101,30 @@ Begin VB.Form frmLiveBadukSkinProperties
          Width           =   615
       End
    End
-   Begin prjDownloadBooster.FrameW fText 
+   Begin VB.Frame fText 
+      Caption         =   "글자"
       Height          =   2055
       Left            =   120
       TabIndex        =   0
       Top             =   120
       Width           =   5055
-      _ExtentX        =   8916
-      _ExtentY        =   3625
-      Caption         =   "글자"
-      Begin prjDownloadBooster.CheckBoxW chkEnableFontSize 
+      Begin VB.CheckBox chkEnableFontSize 
+         Caption         =   "라벨 글자 크기(&S):"
          Height          =   255
          Left            =   120
          TabIndex        =   7
          Top             =   1320
+         Value           =   1  '확인
          Width           =   1935
-         _ExtentX        =   3413
-         _ExtentY        =   450
-         Value           =   1
-         Caption         =   "라벨 글자 크기(&S):"
       End
-      Begin prjDownloadBooster.CheckBoxW chkBold 
+      Begin VB.CheckBox chkBold 
+         Caption         =   "라벨 굵게(&B)"
          Height          =   255
          Left            =   120
          TabIndex        =   9
          Top             =   1680
+         Value           =   1  '확인
          Width           =   2655
-         _ExtentX        =   4683
-         _ExtentY        =   450
-         Value           =   1
-         Caption         =   "라벨 굵게(&B)"
       End
       Begin prjDownloadBooster.SpinBox sbFontSize 
          Height          =   255
@@ -151,26 +141,22 @@ Begin VB.Form frmLiveBadukSkinProperties
          AllowOnlyNumbers=   -1  'True
          TextAlignment   =   1
       End
-      Begin prjDownloadBooster.CheckBoxW chkShadowColor 
+      Begin VB.CheckBox chkShadowColor 
+         Caption         =   "라벨 그림자 색(&H):"
          Height          =   255
          Left            =   120
          TabIndex        =   3
          Top             =   600
+         Value           =   1  '확인
          Width           =   1935
-         _ExtentX        =   3413
-         _ExtentY        =   450
-         Value           =   1
-         Caption         =   "라벨 그림자 색(&H):"
       End
-      Begin prjDownloadBooster.CheckBoxW chkTextColor 
+      Begin VB.CheckBox chkTextColor 
+         Caption         =   "라벨 글자 색(&X):"
          Height          =   255
          Left            =   120
          TabIndex        =   1
          Top             =   240
          Width           =   1935
-         _ExtentX        =   3413
-         _ExtentY        =   450
-         Caption         =   "라벨 글자 색(&X):"
       End
       Begin VB.Label lblSelectTextColor 
          BackStyle       =   0  '투명
@@ -266,15 +252,13 @@ Begin VB.Form frmLiveBadukSkinProperties
          Width           =   615
       End
    End
-   Begin prjDownloadBooster.FrameW fFrameColor 
+   Begin VB.Frame fFrameColor 
+      Caption         =   "프레임 테두리"
       Height          =   1335
       Left            =   120
       TabIndex        =   10
       Top             =   2280
       Width           =   5055
-      _ExtentX        =   8916
-      _ExtentY        =   2355
-      Caption         =   "프레임 테두리"
       Begin prjDownloadBooster.CommandButtonW cmdSelectTexture 
          Height          =   330
          Left            =   2160
@@ -368,7 +352,10 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
+#If DISABLEFRAMESKIN Then
+#Else
 Public SkinnedFrame As frmSkinnedFrame
+#End If
 
 Private Sub cmdCancel_Click()
     Unload Me
@@ -464,7 +451,10 @@ Private Sub Form_Load()
 End Sub
 
 Private Sub Form_Unload(Cancel As Integer)
+#If DISABLEFRAMESKIN Then
+#Else
     Unload SkinnedFrame
+#End If
 End Sub
 
 Private Sub lblFrameBackgroundColorSelect_Click()

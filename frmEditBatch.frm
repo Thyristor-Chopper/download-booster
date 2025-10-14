@@ -44,15 +44,13 @@ Begin VB.Form frmEditBatch
       _ExtentY        =   582
       Caption         =   "취소"
    End
-   Begin prjDownloadBooster.FrameW fInfo 
+   Begin VB.Frame fInfo 
+      Caption         =   " 파일 다운로드 정보 "
       Height          =   2415
       Left            =   120
       TabIndex        =   0
       Top             =   120
       Width           =   5415
-      _ExtentX        =   9551
-      _ExtentY        =   4260
-      Caption         =   " 파일 다운로드 정보 "
       Begin prjDownloadBooster.CommandButtonW cmdHeaders 
          Height          =   330
          Left            =   2160
@@ -132,7 +130,10 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
+#If DISABLEFRAMESKIN Then
+#Else
 Public SkinnedFrame As frmSkinnedFrame
+#End If
 
 Public OriginalURL As String
 Public OriginalPath As String
@@ -266,5 +267,8 @@ Private Sub Form_Load()
 End Sub
 
 Private Sub Form_Unload(Cancel As Integer)
+#If DISABLEFRAMESKIN Then
+#Else
     Unload SkinnedFrame
+#End If
 End Sub

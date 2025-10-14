@@ -280,6 +280,9 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+#If DISABLEFRAMESKIN Then
+#Else
+
 Option Explicit
 
 Public TargetForm As Object
@@ -1138,3 +1141,4 @@ Private Function IsMinimizeEnabled() As Boolean
     IsMinimizeEnabled = (GetWindowLong(TargetForm.hWnd, GWL_STYLE) And WS_MINIMIZEBOX) <> 0
 End Function
 
+#End If

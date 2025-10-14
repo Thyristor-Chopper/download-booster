@@ -84,7 +84,10 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
+#If DISABLEFRAMESKIN Then
+#Else
 Public SkinnedFrame As frmSkinnedFrame
+#End If
 
 Public ResultID As String
 Public InputBoxObject As frmInputBox
@@ -122,7 +125,10 @@ Private Sub Form_Unload(Cancel As Integer)
         Set InputBoxObject = Nothing
     End If
     
+#If DISABLEFRAMESKIN Then
+#Else
     Unload SkinnedFrame
+#End If
 End Sub
 
 Private Sub txtInput_Change()

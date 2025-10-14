@@ -29,15 +29,13 @@ Begin VB.Form frmBrowse
       Left            =   5400
       Top             =   1560
    End
-   Begin prjDownloadBooster.CheckBoxW chkHidden 
+   Begin VB.CheckBox chkHidden 
+      Caption         =   "¼û±è Ç¥½Ã(&H)"
       Height          =   255
       Left            =   4920
       TabIndex        =   10
       Top             =   2880
       Width           =   1455
-      _ExtentX        =   0
-      _ExtentY        =   0
-      Caption         =   "¼û±è Ç¥½Ã(&H)"
    End
    Begin VB.TextBox txtFileName 
       Height          =   270
@@ -229,7 +227,10 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+#If DISABLEFRAMESKIN Then
+#Else
 Public SkinnedFrame As frmSkinnedFrame
+#End If
 
 Private Sub CancelButton_Click()
     Unload Me
@@ -294,7 +295,10 @@ Private Sub Form_Load()
 End Sub
 
 Private Sub Form_Unload(Cancel As Integer)
+#If DISABLEFRAMESKIN Then
+#Else
     Unload SkinnedFrame
+#End If
 End Sub
 
 Private Sub lvDir_Change()

@@ -1404,7 +1404,10 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
+#If DISABLEFRAMESKIN Then
+#Else
 Public SkinnedFrame As frmSkinnedFrame
+#End If
 
 Implements IBSSubclass
 
@@ -1971,7 +1974,7 @@ nextln:
     Dim i%
     If BatchStarted Then
         pbTotalProgress.Value = 0
-        For i = 1 To lblDownloader.uBound
+        For i = 1 To lblDownloader.UBound
             pbProgress(i).Value = 0
             lblPercentage(i).Caption = ""
         Next i
@@ -2135,7 +2138,7 @@ Sub OnStop(Optional PlayBeep As Boolean = True)
     
         fTotal.Caption = t(" 전체 다운로드 현황 ", " Total Progress ")
         lblProgress = ""
-        For i = 1 To lblDownloader.uBound
+        For i = 1 To lblDownloader.UBound
             pbProgress(i).Value = 0
             lblPercentage(i).Caption = ""
         Next i
@@ -2706,7 +2709,7 @@ Sub SetBackgroundPosition(Optional ByVal ForceRefresh As Boolean = False)
                 If Width > 0 And Height > 0 Then
                     For i = 1 To Ceil(Me.Height / Height)
                         For j = 1 To Ceil(Me.Width / Width)
-                            If k > imgBackgroundTile.uBound Then _
+                            If k > imgBackgroundTile.UBound Then _
                                 Load imgBackgroundTile(k)
                             If Not (imgBackgroundTile(k).Picture Is imgBackground.Picture) Then
                                 Set imgBackgroundTile(k).Picture = imgBackground.Picture
@@ -2845,7 +2848,7 @@ Sub LoadLiveBadukSkin()
         
         SetFrameTexture
         
-        For i = imgFrame.lbound To imgFrame.uBound
+        For i = imgFrame.LBound To imgFrame.UBound
             imgFrame(i).Visible = (i = fSkin)
         Next i
 
@@ -3391,8 +3394,11 @@ Private Sub Form_Load()
     '스크롤 표시 유무
     vsProgressScroll.Visible = (trThreadCount.Value > 10 And optTabThreads2.Value)
     
+#If DISABLEFRAMESKIN Then
+#Else
     Set SkinnedFrame = New frmSkinnedFrame
     SkinnedFrame.Init Me
+#End If
 End Sub
 
 Private Sub SetTygemFrameRgn()
@@ -3820,7 +3826,10 @@ Private Sub Form_Unload(Cancel As Integer)
     Unload frmInputBox
     Unload frmAbout
     Unload frmDownloadOptions
+#If DISABLEFRAMESKIN Then
+#Else
     Unload SkinnedFrame
+#End If
     'If Not InIDE Then ExitProcess 0&
 End Sub
 
@@ -4166,7 +4175,7 @@ Sub trThreadCount_Scroll()
         lblThreadCount.Caption = "(" & trThreadCount.Value & t("개 스레드", " threads") & ")"
     End If
     Dim i%, bRowVisible As Boolean
-    For i = 1 To lblDownloader.uBound
+    For i = 1 To lblDownloader.UBound
         bRowVisible = (i <= trThreadCount.Value)
         lblDownloader(i).Visible = bRowVisible
         pbProgress(i).Visible = bRowVisible

@@ -23,24 +23,20 @@ Begin VB.Form frmSystemFrameProperties
    ScaleWidth      =   4680
    ShowInTaskbar   =   0   'False
    StartUpPosition =   1  '소유자 가운데
-   Begin prjDownloadBooster.CheckBoxW chkNoDWM 
+   Begin VB.CheckBox chkNoDWM 
       Height          =   255
       Left            =   240
       TabIndex        =   3
       Top             =   600
       Width           =   4215
-      _ExtentX        =   7435
-      _ExtentY        =   450
    End
-   Begin prjDownloadBooster.CheckBoxW chkDisableVisualStyle 
+   Begin VB.CheckBox chkDisableVisualStyle 
+      Caption         =   "고전 스타일 제목 표시줄 사용(&C)"
       Height          =   255
       Left            =   240
       TabIndex        =   0
       Top             =   240
       Width           =   4215
-      _ExtentX        =   7435
-      _ExtentY        =   450
-      Caption         =   "고전 스타일 제목 표시줄 사용(&C)"
    End
    Begin prjDownloadBooster.CommandButtonW cmdOK 
       Default         =   -1  'True
@@ -49,9 +45,9 @@ Begin VB.Form frmSystemFrameProperties
       TabIndex        =   1
       Top             =   960
       Width           =   1215
-      _extentx        =   2143
-      _extenty        =   609
-      caption         =   "확인"
+      _ExtentX        =   2143
+      _ExtentY        =   609
+      Caption         =   "확인"
    End
    Begin prjDownloadBooster.CommandButtonW cmdCancel 
       Cancel          =   -1  'True
@@ -60,9 +56,9 @@ Begin VB.Form frmSystemFrameProperties
       TabIndex        =   2
       Top             =   960
       Width           =   1215
-      _extentx        =   2143
-      _extenty        =   609
-      caption         =   "취소"
+      _ExtentX        =   2143
+      _ExtentY        =   609
+      Caption         =   "취소"
    End
 End
 Attribute VB_Name = "frmSystemFrameProperties"
@@ -70,7 +66,10 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+#If DISABLEFRAMESKIN Then
+#Else
 Public SkinnedFrame As frmSkinnedFrame
+#End If
 
 Private Sub cmdCancel_Click()
     Unload Me
@@ -117,5 +116,8 @@ Private Sub Form_Load()
 End Sub
 
 Private Sub Form_Unload(Cancel As Integer)
+#If DISABLEFRAMESKIN Then
+#Else
     Unload SkinnedFrame
+#End If
 End Sub

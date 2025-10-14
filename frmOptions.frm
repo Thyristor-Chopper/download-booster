@@ -26,7 +26,6 @@ Begin VB.Form frmOptions
    ShowInTaskbar   =   0   'False
    StartUpPosition =   1  '소유자 가운데
    Begin VB.PictureBox pbPanel 
-      AutoRedraw      =   -1  'True
       BorderStyle     =   0  '없음
       Enabled         =   0   'False
       Height          =   4425
@@ -63,7 +62,6 @@ Begin VB.Form frmOptions
                _ExtentY        =   529
                ImageList       =   "imgBrowse"
                ImageListAlignment=   4
-               Transparent     =   -1  'True
             End
             Begin VB.TextBox txtCompleteSoundPath 
                Height          =   300
@@ -98,7 +96,6 @@ Begin VB.Form frmOptions
                   Strikethrough   =   0   'False
                EndProperty
                Caption         =   "▶"
-               Transparent     =   -1  'True
             End
          End
          Begin VB.Image Image1 
@@ -134,7 +131,6 @@ Begin VB.Form frmOptions
                _ExtentY        =   529
                ImageList       =   "imgBrowse"
                ImageListAlignment=   4
-               Transparent     =   -1  'True
             End
             Begin VB.TextBox txtAsterisk 
                Height          =   300
@@ -169,7 +165,6 @@ Begin VB.Form frmOptions
                   Strikethrough   =   0   'False
                EndProperty
                Caption         =   "▶"
-               Transparent     =   -1  'True
             End
          End
          Begin VB.Frame fExclamation 
@@ -190,7 +185,6 @@ Begin VB.Form frmOptions
                _ExtentY        =   529
                ImageList       =   "imgBrowse"
                ImageListAlignment=   4
-               Transparent     =   -1  'True
             End
             Begin VB.TextBox txtExclamation 
                Height          =   300
@@ -225,7 +219,6 @@ Begin VB.Form frmOptions
                   Strikethrough   =   0   'False
                EndProperty
                Caption         =   "▶"
-               Transparent     =   -1  'True
             End
          End
          Begin VB.Frame fError 
@@ -246,7 +239,6 @@ Begin VB.Form frmOptions
                _ExtentY        =   529
                ImageList       =   "imgBrowse"
                ImageListAlignment=   4
-               Transparent     =   -1  'True
             End
             Begin VB.TextBox txtError 
                Height          =   300
@@ -281,7 +273,6 @@ Begin VB.Form frmOptions
                   Strikethrough   =   0   'False
                EndProperty
                Caption         =   "▶"
-               Transparent     =   -1  'True
             End
          End
          Begin VB.Frame fQuestion 
@@ -302,7 +293,6 @@ Begin VB.Form frmOptions
                _ExtentY        =   529
                ImageList       =   "imgBrowse"
                ImageListAlignment=   4
-               Transparent     =   -1  'True
             End
             Begin VB.TextBox txtQuestion 
                Height          =   300
@@ -337,7 +327,6 @@ Begin VB.Form frmOptions
                   Strikethrough   =   0   'False
                EndProperty
                Caption         =   "▶"
-               Transparent     =   -1  'True
             End
          End
          Begin VB.Image Image8 
@@ -361,7 +350,6 @@ Begin VB.Form frmOptions
       InitListImages  =   "frmOptions.frx":0898
    End
    Begin VB.PictureBox pbPanel 
-      AutoRedraw      =   -1  'True
       BorderStyle     =   0  '없음
       Enabled         =   0   'False
       Height          =   2385
@@ -482,7 +470,6 @@ Begin VB.Form frmOptions
       End
    End
    Begin VB.PictureBox pbPanel 
-      AutoRedraw      =   -1  'True
       BorderStyle     =   0  '없음
       Height          =   4185
       Index           =   1
@@ -728,7 +715,6 @@ Begin VB.Form frmOptions
       End
    End
    Begin VB.PictureBox pbPanel 
-      AutoRedraw      =   -1  'True
       BorderStyle     =   0  '없음
       Enabled         =   0   'False
       Height          =   1695
@@ -799,7 +785,6 @@ Begin VB.Form frmOptions
       End
    End
    Begin VB.PictureBox pbPanel 
-      AutoRedraw      =   -1  'True
       BorderStyle     =   0  '없음
       Enabled         =   0   'False
       Height          =   5130
@@ -969,7 +954,6 @@ Begin VB.Form frmOptions
             _ExtentX        =   2355
             _ExtentY        =   529
             Caption         =   "삭제(&D)"
-            Transparent     =   -1  'True
          End
          Begin prjDownloadBooster.CommandButtonW cmdSaveTheme 
             Height          =   300
@@ -980,7 +964,6 @@ Begin VB.Form frmOptions
             _ExtentX        =   2355
             _ExtentY        =   529
             Caption         =   "저장(&V)..."
-            Transparent     =   -1  'True
          End
          Begin VB.ComboBox cbTheme 
             Height          =   300
@@ -1025,7 +1008,6 @@ Begin VB.Form frmOptions
             _ExtentX        =   873
             _ExtentY        =   529
             ImageListAlignment=   4
-            Transparent     =   -1  'True
          End
          Begin VB.ComboBox cbSkin 
             Height          =   300
@@ -1052,7 +1034,6 @@ Begin VB.Form frmOptions
             _ExtentX        =   873
             _ExtentY        =   529
             ImageListAlignment=   4
-            Transparent     =   -1  'True
          End
          Begin prjDownloadBooster.CommandButtonW cmdAdvancedFrameSkin 
             Height          =   300
@@ -1063,7 +1044,6 @@ Begin VB.Form frmOptions
             _ExtentX        =   873
             _ExtentY        =   529
             ImageListAlignment=   4
-            Transparent     =   -1  'True
          End
          Begin VB.Label Label5 
             BackStyle       =   0  '투명
@@ -1222,15 +1202,13 @@ Begin VB.Form frmOptions
                Visible         =   0   'False
                Width           =   2415
             End
-            Begin prjDownloadBooster.CheckBoxW CheckBoxW1 
+            Begin VB.CheckBox CheckBoxW1 
+               Caption         =   "완료 후 열기"
                Height          =   255
                Left            =   180
                TabIndex        =   113
                Top             =   960
                Width           =   1695
-               _ExtentX        =   0
-               _ExtentY        =   0
-               Caption         =   "완료 후 열기"
             End
             Begin VB.TextBox TextBoxW1 
                Height          =   270
@@ -1239,15 +1217,13 @@ Begin VB.Form frmOptions
                Top             =   60
                Width           =   2415
             End
-            Begin prjDownloadBooster.FrameW FrameW5 
+            Begin VB.Frame FrameW5 
+               Caption         =   "다운로드 현황"
                Height          =   555
                Left            =   180
                TabIndex        =   115
                Top             =   375
                Width           =   3615
-               _ExtentX        =   0
-               _ExtentY        =   0
-               Caption         =   "다운로드 현황"
                Begin prjDownloadBooster.ProgressBar pbSampleClassic 
                   Height          =   225
                   Left            =   120
@@ -1287,7 +1263,6 @@ Begin VB.Form frmOptions
                _ExtentX        =   2778
                _ExtentY        =   503
                Caption         =   "다운로드"
-               Transparent     =   -1  'True
             End
             Begin VB.Label Label11 
                BackStyle       =   0  '투명
@@ -1397,8 +1372,11 @@ Attribute VB_Exposed = False
 
 Option Explicit
 
+#If DISABLEFRAMESKIN Then
+#Else
 Public SkinnedFrame As frmSkinnedFrame
 Public PreviewSkinnedFrame As frmSkinnedFrame
+#End If
 
 Dim Loaded As Boolean
 Public ColorChanged As Boolean
@@ -1471,7 +1449,10 @@ Private Sub cbFrameSkin_Click()
         SkinChanged = True
     End If
     
+#If DISABLEFRAMESKIN Then
+#Else
     PreviewSkinnedFrame.SetSkin cbFrameSkin.ListIndex
+#End If
     
     cmdAdvancedFrameSkin.Enabled = (cbFrameSkin.ListIndex = 0)
 End Sub
@@ -1499,7 +1480,7 @@ End Sub
 Private Sub cbSkin_Click()
     cmdSample.IsTygemButton = (cbSkin.ListIndex > 0)
     If cmdSample.IsTygemButton Then cmdSample.GetTygemButton().Skin = cbSkin.ListIndex
-    cmdSample.Refresh
+    'cmdSample.Refresh
     Dim ctrl As Control
     On Error Resume Next
     For Each ctrl In Me.Controls
@@ -1516,8 +1497,8 @@ Private Sub cbSkin_Click()
 '        End If
     End If
     If optUserFore.Value Then
-        CheckBoxW1.VisualStyles = False
-        FrameW5.VisualStyles = False
+        RemoveVisualStyles CheckBoxW1.hWnd
+        RemoveVisualStyles FrameW5.hWnd
         CheckBoxW1.ForeColor = pgFore.BackColor
         FrameW5.ForeColor = pgFore.BackColor
     End If
@@ -1565,21 +1546,9 @@ Private Sub LoadTheme(Optional ByVal ThemeName As String = "")
     
     lvPatterns.ListIndex = CInt(GetSetting("DownloadBooster", Section, "FormFillStyle", 0))
     
-    ChangedBackgroundPath = GetSetting("DownloadBooster", Section, "BackgroundImagePath", "")
-    LoadBackgroundList (ThemeName = "")
-    
     pgPatternColor.BackColor = CLng(GetSetting("DownloadBooster", Section, "FormFillColor", 0))
     pgPatternPreview.FillColor = pgPatternColor.BackColor
     pgPatternPreview.FillStyle = lvPatterns.ListIndex + 1
-    
-    Dim imgpos As Byte: imgpos = GetSetting("DownloadBooster", Section, "ImagePosition", 1)
-    If imgpos > 3 And imgpos <= 6 Then
-        imgpos = imgpos - 3: chkCenter.Value = 1
-    ElseIf imgpos = 7 Then
-        imgpos = 4
-    End If
-    cbImagePosition.ListIndex = imgpos
-    cbImagePosition_Click
     
     cbFont.Text = Trim$(GetSetting("DownloadBooster", Section, "Font", ""))
     If cbFont.Text = "" Then cbFont.Text = ("(" & t("기본값", "default") & ")")
@@ -1589,19 +1558,39 @@ Private Sub LoadTheme(Optional ByVal ThemeName As String = "")
     If clrForeColor < 0 Or clrForeColor > 16777215 Then
         optSystemFore.Value = True
         pgFore.BackColor = &H80000012
-        CheckBoxW1.VisualStyles = (DisableVisualStyle = 0)
-        FrameW5.VisualStyles = (DisableVisualStyle = 0)
+        If DisableVisualStyle = 0 Then
+            ActivateVisualStyles CheckBoxW1.hWnd
+            ActivateVisualStyles FrameW5.hWnd
+        Else
+            RemoveVisualStyles CheckBoxW1.hWnd
+            RemoveVisualStyles FrameW5.hWnd
+        End If
     Else
         optUserFore.Value = True
         pgFore.BackColor = clrForeColor
-        CheckBoxW1.VisualStyles = False
-        FrameW5.VisualStyles = False
+        RemoveVisualStyles CheckBoxW1.hWnd
+        RemoveVisualStyles FrameW5.hWnd
         CheckBoxW1.ForeColor = pgFore.BackColor
         FrameW5.ForeColor = pgFore.BackColor
     End If
     Label11.ForeColor = pgFore.BackColor
-    CheckBoxW1.Transparent = True
-    FrameW5.Transparent = True
+    'CheckBoxW1.Transparent = True
+    'FrameW5.Transparent = True
+    
+    lvBackgrounds.Enabled = False
+    cbImagePosition.Enabled = False
+    ChangedBackgroundPath = GetSetting("DownloadBooster", Section, "BackgroundImagePath", "")
+    LoadBackgroundList (ThemeName = "")
+    Dim imgpos As Byte: imgpos = GetSetting("DownloadBooster", Section, "ImagePosition", 1)
+    If imgpos > 3 And imgpos <= 6 Then
+        imgpos = imgpos - 3: chkCenter.Value = 1
+    ElseIf imgpos = 7 Then
+        imgpos = 4
+    End If
+    cbImagePosition.ListIndex = imgpos
+    cbImagePosition_Click
+    cbImagePosition.Enabled = True
+    lvBackgrounds.Enabled = True
 End Sub
 
 Private Sub cbTheme_Click()
@@ -1883,7 +1872,7 @@ aftermaxtrdcheck:
         SetFormBackgroundColor Me, True
         SetFormBackgroundColor frmMain, True
         RedrawPreview
-        cmdChooseBackground.Refresh
+        'cmdChooseBackground.Refresh
         frmMain.pbProgressContainer.Refresh
         frmMain.SetTextColors
         
@@ -1895,21 +1884,24 @@ aftermaxtrdcheck:
             EnableDWMWindow frmMain.hWnd
         End If
         
+#If DISABLEFRAMESKIN Then
+#Else
         frmMain.SkinnedFrame.SetSkin CurrentWindowSkin
         SkinnedFrame.SetSkin CurrentWindowSkin
+#End If
     End If
     If ProgressSkinChanged Then
         SaveSetting "DownloadBooster", "Options", "ProgressFrameSkin", cbProgressSkin.ListIndex
         frmMain.LoadLiveBadukSkin
         frmMain.SetupSplitButtons
     End If
-    If VisualStyleChanged Then
-        On Error Resume Next
-        'DrawTabBackground Me, tsTabStrip, pbPanel
-        cmdChooseBackground.Refresh
-        cmdSample.Refresh
-        On Error GoTo 0
-    End If
+'    If VisualStyleChanged Then
+'        On Error Resume Next
+'        DrawTabBackground Me, tsTabStrip, pbPanel
+'        cmdChooseBackground.Refresh
+'        cmdSample.Refresh
+'        On Error GoTo 0
+'    End If
     If cbLanguage.ListIndex = 0 Then
         SaveSetting "DownloadBooster", "Options", "Language", "0"
     ElseIf cbLanguage.ListIndex = 1 Then
@@ -1997,8 +1989,8 @@ aftermaxtrdcheck:
     SaveSetting "DownloadBooster", "Options", "AlwaysOnTop", -MainFormOnTop
     
     If optUserFore.Value Then
-        CheckBoxW1.VisualStyles = False
-        FrameW5.VisualStyles = False
+        RemoveVisualStyles CheckBoxW1.hWnd
+        RemoveVisualStyles FrameW5.hWnd
         CheckBoxW1.ForeColor = pgFore.BackColor
         FrameW5.ForeColor = pgFore.BackColor
     End If
@@ -2228,9 +2220,12 @@ End Sub
 
 Private Sub Form_Unload(Cancel As Integer)
     IBSSubclass_UnsubclassIt
-    On Error Resume Next
+    
+#If DISABLEFRAMESKIN Then
+#Else
     Unload PreviewSkinnedFrame
     Unload SkinnedFrame
+#End If
 End Sub
 
 Private Function IBSSubclass_MsgResponse(ByVal hWnd As Long, ByVal uMsg As Long) As EMsgResponse
@@ -2289,7 +2284,7 @@ nopicture:
     Else
         Set imgPreview.Picture = LoadPictureFromFile(BackgroundPath)
     End If
-    frmOptions.cmdSample.Refresh
+    'cmdSample.Refresh
     ChangedBackgroundPath = BackgroundPath
     If Loaded Then
         cmdApply.Enabled = -1
@@ -2396,14 +2391,20 @@ Private Sub Form_Load()
     pbBackground.Enabled = False
     SetPreviewPosition
     
+#If DISABLEFRAMESKIN Then
+#Else
     Set PreviewSkinnedFrame = New frmSkinnedFrame
     PreviewSkinnedFrame.Init pbBackground
     PreviewSkinnedFrame.SetCaption App.Title
+#End If
     
     AddItemToComboBox cbFrameSkin, t("시스템 스타일", "System style")
+#If DISABLEFRAMESKIN Then
+#Else
     AddItemToComboBox cbFrameSkin, t("금속 파랑", "Blue metal")
     AddItemToComboBox cbFrameSkin, t("금속 초록", "Green metal")
     AddItemToComboBox cbFrameSkin, "Windows XP"
+#End If
     
     imgPreview.Top = 0
     imgPreview.Left = 0
@@ -2573,13 +2574,13 @@ nextcode:
     chkAutoYtdl.Visible = False
     Label7.Visible = False
     Frame2.Height = Frame2.Height - chkAutoYtdl.Height
-    Frame2.Refresh
+    'Frame2.Refresh
     Frame5.Top = Frame5.Top - chkAutoYtdl.Height
-    Frame5.Refresh
+    'Frame5.Refresh
     Label3.Top = Label3.Top - chkAutoYtdl.Height
     cbWhenExist.Top = cbWhenExist.Top - chkAutoYtdl.Height
     FrameW2.Height = FrameW2.Height - txtYtdlPath.Height - 120
-    FrameW2.Refresh
+    'FrameW2.Refresh
     Label14.Top = Label14.Top - chkAutoYtdl.Height
     txtMaxThreadCount.Top = txtMaxThreadCount.Top - chkAutoYtdl.Height
     Label15.Top = Label15.Top - chkAutoYtdl.Height
@@ -2711,7 +2712,6 @@ Private Sub LoadSettings()
 End Sub
 
 Sub LoadBackgroundList(Optional ByVal OnLoad As Boolean = False)
-    lvBackgrounds.Enabled = False
     Dim BackgroundImageEnabled As Boolean
     Dim BackgroundPath$: BackgroundPath = ChangedBackgroundPath
     ClearComboBox lvBackgrounds
@@ -2755,7 +2755,6 @@ NextItem:
         End If
     End If
     lvBackgrounds.ListIndex = SelectedIndex
-    lvBackgrounds.Enabled = True
 End Sub
 
 Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
@@ -2774,7 +2773,7 @@ Private Sub lblSelectColor_Click()
     ColorChanged = True
     pbBackground.BackColor = pgColor.BackColor
     pgPatternPreview.BackColor = pgColor.BackColor
-    cmdSample.Refresh
+    'cmdSample.Refresh
     RedrawPreview
 End Sub
 
@@ -2788,8 +2787,8 @@ Private Sub lblSelectFore_Click()
     ColorChanged = True
     ProgressSkinChanged = True
     Label11.ForeColor = pgFore.BackColor
-    CheckBoxW1.VisualStyles = False
-    FrameW5.VisualStyles = False
+    RemoveVisualStyles CheckBoxW1.hWnd
+    RemoveVisualStyles FrameW5.hWnd
     CheckBoxW1.ForeColor = pgFore.BackColor
     FrameW5.ForeColor = pgFore.BackColor
 End Sub
@@ -2806,7 +2805,7 @@ Private Sub optSystemColor_Click()
     End If
     pbBackground.BackColor = &H8000000F
     pgPatternPreview.BackColor = pbBackground.BackColor
-    cmdSample.Refresh
+    'cmdSample.Refresh
     RedrawPreview
     chkBackColorMainOnly.Enabled = False
 End Sub
@@ -2818,8 +2817,13 @@ Private Sub optSystemFore_Click()
         ProgressSkinChanged = True
     End If
     Label11.ForeColor = &H80000012
-    CheckBoxW1.VisualStyles = (DisableVisualStyle = 0)
-    FrameW5.VisualStyles = (DisableVisualStyle = 0)
+    If DisableVisualStyle = 0 Then
+        ActivateVisualStyles CheckBoxW1.hWnd
+        ActivateVisualStyles FrameW5.hWnd
+    Else
+        RemoveVisualStyles CheckBoxW1.hWnd
+        RemoveVisualStyles FrameW5.hWnd
+    End If
     CheckBoxW1.ForeColor = &H80000012
     FrameW5.ForeColor = &H80000012
     chkForeColorMainOnly.Enabled = False
@@ -2832,7 +2836,7 @@ Private Sub optUserColor_Click()
     End If
     pbBackground.BackColor = pgColor.BackColor
     pgPatternPreview.BackColor = pbBackground.BackColor
-    cmdSample.Refresh
+    'cmdSample.Refresh
     RedrawPreview
     chkBackColorMainOnly.Enabled = True
 End Sub
@@ -2844,8 +2848,8 @@ Private Sub optUserFore_Click()
         ProgressSkinChanged = True
     End If
     Label11.ForeColor = pgFore.BackColor
-    CheckBoxW1.VisualStyles = False
-    FrameW5.VisualStyles = False
+    RemoveVisualStyles CheckBoxW1.hWnd
+    RemoveVisualStyles FrameW5.hWnd
     CheckBoxW1.ForeColor = pgFore.BackColor
     FrameW5.ForeColor = pgFore.BackColor
     chkForeColorMainOnly.Enabled = True
@@ -2893,17 +2897,17 @@ End Sub
 Sub RedrawPreview()
     DoEvents
     pbBackground.Refresh
-    cmdSample.Refresh
-    Dim ctrl As Control
-    On Error Resume Next
-    For Each ctrl In Me.Controls
-        If ctrl.Container Is pbBackground Then
-            ctrl.Refresh
-            DoEvents
-        End If
-    Next ctrl
-    FrameW5.Refresh
-    CheckBoxW1.Refresh
+'    cmdSample.Refresh
+'    Dim ctrl As Control
+'    On Error Resume Next
+'    For Each ctrl In Me.Controls
+'        If ctrl.Container Is pbBackground Then
+'            ctrl.Refresh
+'            DoEvents
+'        End If
+'    Next ctrl
+'    FrameW5.Refresh
+'    CheckBoxW1.Refresh
 End Sub
 
 Private Sub txtError_Change()

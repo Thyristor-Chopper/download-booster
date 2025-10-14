@@ -63,15 +63,13 @@ Begin VB.Form frmExplorer
       _ExtentY        =   609
       Caption         =   "È®ÀÎ"
    End
-   Begin prjDownloadBooster.CheckBoxW chkShowFiles 
+   Begin VB.CheckBox chkShowFiles 
+      Caption         =   "ÆÄÀÏ Ç¥½Ã(&S)"
       Height          =   255
       Left            =   6240
       TabIndex        =   8
       Top             =   5340
       Width           =   2175
-      _ExtentX        =   3836
-      _ExtentY        =   450
-      Caption         =   "ÆÄÀÏ Ç¥½Ã(&S)"
    End
    Begin prjDownloadBooster.ImageList imgPlaces 
       Left            =   8640
@@ -219,15 +217,13 @@ Begin VB.Form frmExplorer
       UseColumnChevron=   -1  'True
       AutoSelectFirstItem=   0   'False
    End
-   Begin prjDownloadBooster.CheckBoxW chkHidden 
+   Begin VB.CheckBox chkHidden 
+      Caption         =   "¼û±è ÆÄÀÏ Ç¥½Ã(&H)"
       Height          =   255
       Left            =   1680
       TabIndex        =   6
       Top             =   5340
       Width           =   2175
-      _ExtentX        =   3836
-      _ExtentY        =   450
-      Caption         =   "¼û±è ÆÄÀÏ Ç¥½Ã(&H)"
    End
    Begin VB.TextBox txtFileName 
       Height          =   270
@@ -285,17 +281,15 @@ Begin VB.Form frmExplorer
       Wrappable       =   0   'False
       AllowCustomize  =   0   'False
       ButtonWidth     =   23
-      InitButtons     =   "frmExplorer.frx":695C
+      InitButtons     =   "frmExplorer.frx":69E4
    End
-   Begin prjDownloadBooster.CheckBoxW chkUnixHidden 
+   Begin VB.CheckBox chkUnixHidden 
+      Caption         =   "¸®´ª½º ¼û±è Ç¥½Ã(&U)"
       Height          =   255
       Left            =   3960
       TabIndex        =   7
       Top             =   5340
       Width           =   2175
-      _ExtentX        =   3836
-      _ExtentY        =   450
-      Caption         =   "¸®´ª½º ¼û±è Ç¥½Ã(&U)"
    End
    Begin VB.Label Label2 
       Alignment       =   1  '¿À¸¥ÂÊ ¸ÂÃã
@@ -434,15 +428,18 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
+#If DISABLEFRAMESKIN Then
+#Else
 Public SkinnedFrame As frmSkinnedFrame
+#End If
 
 Dim Pattern$
 Dim IsMyComputer As Boolean
 'Dim mnuTop&, mnuBottom&, mnuViewID&
 Dim Loaded As Boolean
 Dim ListedOn As String
-Dim ExtToIcon As Collection
-Dim ExtToSmallIcon As Collection
+'Dim ExtToIcon As Collection
+'Dim ExtToSmallIcon As Collection
 Dim FirstListed As Boolean
 Dim LoadFinished As Boolean
 
@@ -561,16 +558,16 @@ Private Sub ListFiles()
         Next i
     End If
     
-    If ExtToIcon.Count Then
-        For i = 1 To ExtToIcon.Count
-            ExtToIcon.Remove 1
-        Next i
-    End If
-    If ExtToSmallIcon.Count Then
-        For i = 1 To ExtToSmallIcon.Count
-            ExtToSmallIcon.Remove 1
-        Next i
-    End If
+'    If ExtToIcon.Count Then
+'        For i = 1 To ExtToIcon.Count
+'            ExtToIcon.Remove 1
+'        Next i
+'    End If
+'    If ExtToSmallIcon.Count Then
+'        For i = 1 To ExtToSmallIcon.Count
+'            ExtToSmallIcon.Remove 1
+'        Next i
+'    End If
     
     Dim Path$, Name$
     Path = lvDir.Path
@@ -643,6 +640,7 @@ Private Sub ListFiles()
                 Next i
                 If (Not PatternMatched) Then GoTo NextFindItem
 
+                ExtName = GetExtensionDescription(FullPath)
                 ext = UCase(GetExtensionName(Name))
                 If ext = "LNK" Then
                     If FolderExists(RemoveQuotes(GetShortcutTarget(FullPath))) Then
@@ -654,26 +652,26 @@ Private Sub ListFiles()
                 
                 Icon = 2
                 SmallIcon = 2
-                UseFileAttr = Not (ext = "EXE" Or ext = "LNK" Or ext = "PIF" Or ext = "ICO")
-                ShellGetFileInfo FullPath, UseFileAttr, ShellIcon, ShellSmallIcon, ExtName
-                If Not UseFileAttr Then
-                    GoTo addicon
-                ElseIf Exists(ExtToIcon, ext) Then
-                    Icon = ExtToIcon(ext)
-                    SmallIcon = ExtToSmallIcon(ext)
-                Else
-addicon:
-                    If cnt < 250 Then
-                        If ShellIcon Is Nothing Or ShellSmallIcon Is Nothing Then GoTo aftericonproc
-                        Icon = imgFolder.ListImages.Add(, , ShellIcon).Index
-                        SmallIcon = imgFolderSmall.ListImages.Add(, , ShellSmallIcon).Index
-                        If UseFileAttr Then
-                            ExtToIcon.Add Icon, ext
-                            ExtToSmallIcon.Add SmallIcon, ext
-                        End If
-                        cnt = cnt + 1
-                    End If
-                End If
+'                UseFileAttr = Not (ext = "EXE" Or ext = "LNK" Or ext = "PIF" Or ext = "ICO")
+'                ShellGetFileInfo FullPath, UseFileAttr, ShellIcon, ShellSmallIcon, ExtName
+'                If Not UseFileAttr Then
+'                    GoTo addicon
+'                ElseIf Exists(ExtToIcon, ext) Then
+'                    Icon = ExtToIcon(ext)
+'                    SmallIcon = ExtToSmallIcon(ext)
+'                Else
+'addicon:
+'                    If cnt < 250 Then
+'                        If ShellIcon Is Nothing Or ShellSmallIcon Is Nothing Then GoTo aftericonproc
+'                        Icon = imgFolder.ListImages.Add(, , ShellIcon).Index
+'                        SmallIcon = imgFolderSmall.ListImages.Add(, , ShellSmallIcon).Index
+'                        If UseFileAttr Then
+'                            ExtToIcon.Add Icon, ext
+'                            ExtToSmallIcon.Add SmallIcon, ext
+'                        End If
+'                        cnt = cnt + 1
+'                    End If
+'                End If
 aftericonproc:
                 Set li = lvFiles.ListItems.Add(, , Name, Icon, SmallIcon)
                 li.ListSubItems.Add Text:=ParseSize(FileLen(FullPath))
@@ -783,8 +781,8 @@ Private Sub Form_Load()
     InitForm Me
     LoadFinished = True
     
-    Set ExtToIcon = New Collection
-    Set ExtToSmallIcon = New Collection
+'    Set ExtToIcon = New Collection
+'    Set ExtToSmallIcon = New Collection
     
     lvFiles.ColumnHeaders.Add , , t("ÀÌ¸§", "Name"), 2295
     lvFiles.ColumnHeaders.Add(, , t("Å©±â", "Size"), 1455).Alignment = LvwColumnHeaderAlignmentRight
@@ -1107,7 +1105,10 @@ Private Sub Form_Unload(Cancel As Integer)
     imgFolder.ListImages.Clear
     imgFolderSmall.ListImages.Clear
     
+#If DISABLEFRAMESKIN Then
+#Else
     Unload SkinnedFrame
+#End If
 End Sub
 
 Private Function IBSSubclass_MsgResponse(ByVal hWnd As Long, ByVal uMsg As Long) As EMsgResponse
