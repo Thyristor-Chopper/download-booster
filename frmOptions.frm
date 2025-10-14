@@ -471,10 +471,10 @@ Begin VB.Form frmOptions
    End
    Begin VB.PictureBox pbPanel 
       BorderStyle     =   0  '없음
-      Height          =   4185
+      Height          =   4785
       Index           =   1
       Left            =   120
-      ScaleHeight     =   4185
+      ScaleHeight     =   4785
       ScaleWidth      =   7095
       TabIndex        =   1
       TabStop         =   0   'False
@@ -482,17 +482,33 @@ Begin VB.Form frmOptions
       Width           =   7095
       Begin VB.Frame Frame5 
          Caption         =   "인터페이스"
-         Height          =   1905
+         Height          =   2535
          Left            =   120
          TabIndex        =   19
          Top             =   2160
          Width           =   6855
+         Begin VB.CheckBox chkShowProgressInTaskbar 
+            Caption         =   "작업 표시줄에 다운로드 진행률 표시(&R)"
+            Height          =   255
+            Left            =   840
+            TabIndex        =   125
+            Top             =   1200
+            Width           =   5055
+         End
+         Begin VB.ComboBox cbStartupPosition 
+            Height          =   300
+            Left            =   2640
+            Style           =   2  '드롭다운 목록
+            TabIndex        =   124
+            Top             =   2130
+            Width           =   2535
+         End
          Begin VB.OptionButton optScreenPerScroll 
             Caption         =   "한 화면씩(&R)"
             Height          =   255
             Left            =   4200
             TabIndex        =   30
-            Top             =   1575
+            Top             =   1815
             Width           =   1500
          End
          Begin VB.OptionButton optLinePerScroll 
@@ -500,7 +516,7 @@ Begin VB.Form frmOptions
             Height          =   255
             Left            =   2640
             TabIndex        =   29
-            Top             =   1575
+            Top             =   1815
             Width           =   1395
          End
          Begin VB.CheckBox chkAllowDuplicates 
@@ -550,8 +566,18 @@ Begin VB.Form frmOptions
             Left            =   2640
             Style           =   2  '드롭다운 목록
             TabIndex        =   26
-            Top             =   1230
+            Top             =   1470
             Width           =   1455
+         End
+         Begin VB.Label Label9 
+            AutoSize        =   -1  'True
+            BackStyle       =   0  '투명
+            Caption         =   "시작 창 위치(&T):"
+            Height          =   180
+            Left            =   1080
+            TabIndex        =   123
+            Top             =   2190
+            Width           =   1350
          End
          Begin VB.Label Label18 
             AutoSize        =   -1  'True
@@ -560,7 +586,7 @@ Begin VB.Form frmOptions
             Height          =   180
             Left            =   1080
             TabIndex        =   28
-            Top             =   1620
+            Top             =   1860
             Width           =   1470
          End
          Begin VB.Label Label16 
@@ -569,7 +595,7 @@ Begin VB.Form frmOptions
             Height          =   255
             Left            =   4200
             TabIndex        =   27
-            Top             =   1290
+            Top             =   1530
             Width           =   1575
          End
          Begin VB.Image Image3 
@@ -586,7 +612,7 @@ Begin VB.Form frmOptions
             Left            =   1080
             TabIndex        =   25
             Tag             =   "nocolorchange"
-            Top             =   1275
+            Top             =   1515
             Width           =   975
          End
       End
@@ -794,7 +820,7 @@ Begin VB.Form frmOptions
       ScaleWidth      =   7110
       TabIndex        =   3
       TabStop         =   0   'False
-      Top             =   5040
+      Top             =   5520
       Visible         =   0   'False
       Width           =   7110
       Begin VB.Frame Frame1 
@@ -1600,6 +1626,10 @@ Private Sub LoadTheme(Optional ByVal ThemeName As String = "")
     lvBackgrounds.Enabled = True
 End Sub
 
+Private Sub cbStartupPosition_Click()
+    If Loaded Then cmdApply.Enabled = -1
+End Sub
+
 Private Sub cbTheme_Click()
     cmdDeleteTheme.Enabled = (cbTheme.ListIndex > 0)
     If cbTheme.ListIndex = 0 Then Exit Sub
@@ -1668,6 +1698,13 @@ End Sub
 Private Sub chkAutoRetry_Click()
     If Loaded Then cmdApply.Enabled = -1
 End Sub
+
+#If HIDEYTDL Then
+#Else
+Private Sub chkAutoYtdl_Click()
+    If Loaded Then cmdApply.Enabled = -1
+End Sub
+#End If
 
 Private Sub chkBackColorMainOnly_Click()
     If Loaded Then
@@ -1742,6 +1779,10 @@ Private Sub chkRememberURL_Click()
     If Loaded Then cmdApply.Enabled = -1
 End Sub
 
+Private Sub chkShowProgressInTaskbar_Click()
+    If Loaded Then cmdApply.Enabled = -1
+End Sub
+
 Private Sub chkUseServerModified_Click()
     If Loaded Then cmdApply.Enabled = -1
 End Sub
@@ -1772,6 +1813,9 @@ Private Sub cmdApply_Click()
     SaveSetting "DownloadBooster", "Options", "BackColorMainOnly", chkBackColorMainOnly.Value
     SaveSetting "DownloadBooster", "Options", "ForeColorMainOnly", chkForeColorMainOnly.Value
     SaveSetting "DownloadBooster", "Options", "UseServerModifiedDate", chkUseServerModified.Value
+    SaveSetting "DownloadBooster", "Options", "StartupPosition", cbStartupPosition.ListIndex
+    SaveSetting "DownloadBooster", "Options", "ShowProgressInTaskbar", chkShowProgressInTaskbar.Value
+    frmMain.pbTotalProgress.ShowInTaskBar = (chkShowProgressInTaskbar.Value = 1)
     If ScrollChanged Then
         frmMain.ScrollOneScreen = optScreenPerScroll.Value
         frmMain.trThreadCount_Scroll
@@ -2449,6 +2493,9 @@ Private Sub Form_Load()
     AddItemToComboBox cbImagePosition, t("원본 크기", "True size")
     AddItemToComboBox cbImagePosition, t("바둑판식", "Tile")
     
+    AddItemToComboBox cbStartupPosition, t("이전 위치 기억", "Remember last position")
+    AddItemToComboBox cbStartupPosition, t("화면 가운데", "Center of the screen")
+    
     LoadSettings
     
     tr chkCenter, "&Center"
@@ -2528,6 +2575,8 @@ Private Sub Form_Load()
     tr cmdDeleteTheme, "&Delete"
     tr chkUseServerModified, "Use server's mo&dified date"
     tr cmdHeaders, "&Headers..."
+    tr Label9, "S&tartup position:"
+    tr chkShowProgressInTaskbar, "Show p&rogress in taskbar"
     
     If LaunchFromMemory Then
         Label4.Enabled = 0
@@ -2606,6 +2655,19 @@ nextcode:
 '    frmDownloadOptions.Move 0, 0
 
     LoadTheme
+    
+    If WinVer < 6.1! Then
+        chkShowProgressInTaskbar.Visible = False
+        Label1.Top = Label1.Top - chkShowProgressInTaskbar.Height
+        cbLanguage.Top = cbLanguage.Top - chkShowProgressInTaskbar.Height
+        Label16.Top = Label16.Top - chkShowProgressInTaskbar.Height
+        Label18.Top = Label18.Top - chkShowProgressInTaskbar.Height
+        optLinePerScroll.Top = optLinePerScroll.Top - chkShowProgressInTaskbar.Height
+        optScreenPerScroll.Top = optScreenPerScroll.Top - chkShowProgressInTaskbar.Height
+        Label9.Top = Label9.Top - chkShowProgressInTaskbar.Height
+        cbStartupPosition.Top = cbStartupPosition.Top - chkShowProgressInTaskbar.Height
+        Frame5.Height = Frame5.Height - chkShowProgressInTaskbar.Height
+    End If
     
     Loaded = True
 End Sub
@@ -2704,6 +2766,9 @@ Private Sub LoadSettings()
     
     txtNodePath.Text = GetSetting("DownloadBooster", "Options", "NodePath", "")
     txtYtdlPath.Text = GetSetting("DownloadBooster", "Options", "YtdlPath", "")
+    
+    cbStartupPosition.ListIndex = GetSetting("DownloadBooster", "Options", "StartupPosition", 0)
+    chkShowProgressInTaskbar.Value = GetSetting("DownloadBooster", "Options", "ShowProgressInTaskbar", 1)
     
     tsTabStrip.Tabs(1).Selected = True
     ResetChanged

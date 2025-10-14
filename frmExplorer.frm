@@ -568,7 +568,7 @@ Private Sub ListFiles()
     Dim FolderCount&: FolderCount = 0
     If Len(lvDir.Path) > 3 Then
         tbToolBar.Buttons(2).Enabled = True
-        SHGetFileInfo vbNullString, &H10&, FileInfo, SfiSize, SHGFI_USEFILEATTRIBUTES Or SHGFI_SYSICONINDEX Or SHGFI_SMALLICON
+        SHGetFileInfo Environ$("TEMP"), &H10&, FileInfo, SfiSize, SHGFI_USEFILEATTRIBUTES Or SHGFI_SYSICONINDEX Or SHGFI_SMALLICON
         Icon = FileInfo.iIcon + 1
         Set li = lvFiles.ListItems.Add(, "..", "..", Icon, Icon, Directory)
         li.ListSubItems.Add , , "-"
@@ -1876,7 +1876,7 @@ Private Sub CreateNewFolder()
     Dim Item As LvwListItem
     Dim SFI As SHFILEINFO
     Dim Icon&
-    SHGetFileInfo vbNullString, &H10&, SFI, Len(SFI), SHGFI_USEFILEATTRIBUTES Or SHGFI_SYSICONINDEX Or SHGFI_SMALLICON
+    SHGetFileInfo Environ$("TEMP"), &H10&, SFI, Len(SFI), SHGFI_USEFILEATTRIBUTES Or SHGFI_SYSICONINDEX Or SHGFI_SMALLICON
     Icon = SFI.iIcon + 1
     Set Item = lvFiles.ListItems.Add(, , DirName, Icon, Icon, Directory)
     Item.ListSubItems.Add , , "-"

@@ -344,7 +344,6 @@ Begin VB.Form frmMain
       _ExtentY        =   450
       Step            =   10
       MarqueeSpeed    =   35
-      ShowInTaskBar   =   -1  'True
    End
    Begin prjDownloadBooster.ImageList imgWrench 
       Left            =   9240
@@ -1429,7 +1428,7 @@ Dim FormCaption$
 Dim LBFrameEnabled As Boolean
 Dim ErrorCodeDescription As Collection
 
-Const MAIN_FORM_WIDTH As Long = 9450
+Const MAIN_FORM_WIDTH As Long = 9330
 
 #If HIDEYTDL Then
 #Else
@@ -1551,7 +1550,7 @@ Private Function IBSSubclass_WindowProc(ByVal hWnd As Long, ByVal uMsg As Long, 
                 Case "WindowMetrics"
                     UpdateBorderWidth
                     
-                    FormWidth = (9450 + WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2) / 15
+                    FormWidth = (MAIN_FORM_WIDTH + WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2) / 15
                     FormMinHeight = (8220 + WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2) / 15
                     
                     Me.Width = FormWidth * 15
@@ -3104,16 +3103,6 @@ Private Sub Form_Load()
     MaxLoadedTileBackgroundImage = 0
     ImagePosition = GetSetting("DownloadBooster", "Options", "ImagePosition", 1)
     
-    '창 위치 불러오기
-    Dim Lft%
-    Dim Top%
-    Top = GetSetting("DownloadBooster", "UserData", "FormTop", "")
-    Lft = GetSetting("DownloadBooster", "UserData", "FormLeft", "")
-    If LenB(Top) And LenB(Lft) Then
-        Me.Top = Top
-        Me.Left = Lft
-    End If
-    
     '쓰레드 정보 창 UI 초기 구성
     Dim i%, ThreadInfoLabelTop#, ThreadInfoProgressTop#, ThreadInfoDownloaderCaption$
     ThreadInfoDownloaderCaption = t("스레드", "Thread") & " "
@@ -3393,6 +3382,22 @@ Private Sub Form_Load()
     
     '스크롤 표시 유무
     vsProgressScroll.Visible = (trThreadCount.Value > 10 And optTabThreads2.Value)
+    
+    Dim Lft&, Top&
+    '창 위치 불러오기
+    If GetSetting("DownloadBooster", "Options", "StartupPosition", 0) = 1 Then
+        Me.Top = Screen.Height \ 2 - Me.Height \ 2
+        Me.Left = Screen.Width \ 2 - Me.Width \ 2
+    Else
+        Top = GetSetting("DownloadBooster", "UserData", "FormTop", 0)
+        Lft = GetSetting("DownloadBooster", "UserData", "FormLeft", 0)
+        If Top <> 0 Or Lft <> 0 Then
+            Me.Top = Top
+            Me.Left = Lft
+        End If
+    End If
+    
+    pbTotalProgress.ShowInTaskBar = (GetSetting("DownloadBooster", "Options", "ShowProgressInTaskbar", 1) <> 0)
     
 #If DISABLEFRAMESKIN Then
 #Else
@@ -3715,15 +3720,15 @@ Private Sub Form_Resize()
     If Me.Height - lvBatchFiles.Top - 1320 < 870 + WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2 Then Exit Sub
     If Me.WindowState = 1 Then Exit Sub
     
-    lvBatchFiles.Height = Me.Height - WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2 - lvBatchFiles.Top - 1320
-    cmdOpenBatch.Top = lvBatchFiles.Top + lvBatchFiles.Height + 45
-    cmdOpenDropdown.Top = lvBatchFiles.Top + lvBatchFiles.Height + 45
-    cmdAdd.Top = lvBatchFiles.Top + lvBatchFiles.Height + 45
-    cmdDelete.Top = lvBatchFiles.Top + lvBatchFiles.Height + 45
-    cmdDeleteDropdown.Top = lvBatchFiles.Top + lvBatchFiles.Height + 45
-    cmdStartBatch.Top = lvBatchFiles.Top + lvBatchFiles.Height + 45
-    cmdStopBatch.Top = lvBatchFiles.Top + lvBatchFiles.Height + 45
-    cmdEdit.Top = lvBatchFiles.Top + lvBatchFiles.Height + 45
+    lvBatchFiles.Height = Me.Height - WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2 - lvBatchFiles.Top - 1320 + 30
+    cmdOpenBatch.Top = lvBatchFiles.Top + lvBatchFiles.Height + 45 + 30
+    cmdOpenDropdown.Top = lvBatchFiles.Top + lvBatchFiles.Height + 45 + 30
+    cmdAdd.Top = lvBatchFiles.Top + lvBatchFiles.Height + 45 + 30
+    cmdDelete.Top = lvBatchFiles.Top + lvBatchFiles.Height + 45 + 30
+    cmdDeleteDropdown.Top = lvBatchFiles.Top + lvBatchFiles.Height + 45 + 30
+    cmdStartBatch.Top = lvBatchFiles.Top + lvBatchFiles.Height + 45 + 30
+    cmdStopBatch.Top = lvBatchFiles.Top + lvBatchFiles.Height + 45 + 30
+    cmdEdit.Top = lvBatchFiles.Top + lvBatchFiles.Height + 45 + 30
     
     If imgBackground.Visible Or imgBackgroundTile(0).Visible Then SetBackgroundPosition
 End Sub
