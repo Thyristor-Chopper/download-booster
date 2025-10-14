@@ -126,7 +126,7 @@ Private Declare Function GetTimeZoneInformation Lib "kernel32" (lpTimeZoneInform
 'Declare Function CreateSolidBrush Lib "gdi32" (ByVal crColor As Long) As Long
 'Declare Sub IUnknown_AtomicRelease Lib "shlwapi" (ppUnk As Any)
 Declare Function OleCreatePictureIndirect Lib "oleaut32" (lpPictDesc As PICTDESC, riid As IID, ByVal fOwn As Boolean, lplpvObj As IPicture) As Long
-Declare Function SHGetFileInfo Lib "shell32" Alias "SHGetFileInfoW" (ByVal pszPath As Long, ByVal dwFileAttributes As Long, ByVal psfi As Long, ByVal cbSizeFileInfo As Long, ByVal uFlags As Long) As Long
+Declare Function SHGetFileInfo Lib "shell32" Alias "SHGetFileInfoA" (ByVal pszPath As String, ByVal dwFileAttributes As Long, psfi As Any, ByVal cbSizeFileInfo As Long, ByVal uFlags As Long) As Long
 Declare Function CreateCompatibleBitmap Lib "gdi32" (ByVal hDC As Long, ByVal nWidth As Long, ByVal nHeight As Long) As Long
 Declare Function BitBlt Lib "gdi32" (ByVal hDestDC As Long, ByVal X As Long, ByVal Y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hSrcDC As Long, ByVal XSrc As Long, ByVal YSrc As Long, ByVal dwRop As Long) As Long
 Declare Function StretchBlt Lib "gdi32" (ByVal hDestDC As Long, ByVal X As Long, ByVal Y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hSrcDC As Long, ByVal XSrc As Long, ByVal YSrc As Long, ByVal nSrcWidth As Long, ByVal nSrcHeight As Long, ByVal dwRop As Long) As Long
@@ -196,6 +196,13 @@ Public Const HTOBJECT As Long = 19      ' Object in window
 Public Const HTCLOSE As Long = 20       ' Close button
 Public Const HTHELP As Long = 21        ' Help button
 
+Public Const LVM_SETVIEW As Long = 4238&
+Public Const LVM_SETIMAGELIST As Long = &H1003&
+Public Const LVSIL_SMALL As Long = 1&
+Public Const LVSIL_NORMAL As Long = 0&
+
+'Public Const SHGFI_DISPLAYNAME As Long = &H200&
+Public Const SHGFI_SYSICONINDEX As Long = &H4000&
 Public Const SHGFI_ICON As Long = &H100&
 Public Const SHGFI_LARGEICON As Long = &H0&
 Public Const SHGFI_SMALLICON As Long = &H1&
@@ -1886,16 +1893,16 @@ Private Function CLargeInt(Lo As Long, Hi As Long) As Double
 End Function
 
 Sub ShellExecute(sFile As String, Optional Action As String = "open", Optional WorkingDirectory As String)
-    Dim shInfo As SHELLEXECUTEINFO
-    With shInfo
-        .cbSize = LenB(shInfo)
+    Dim shinfo As SHELLEXECUTEINFO
+    With shinfo
+        .cbSize = LenB(shinfo)
         .lpFile = sFile
         .nShow = SW_SHOW
         If Action = "properties" Then .fMask = SEE_MASK_INVOKEIDLIST
         If LenB(WorkingDirectory) Then .lpDirectory = WorkingDirectory
         .lpVerb = Action
     End With
-    ShellExecuteEx shInfo
+    ShellExecuteEx shinfo
 End Sub
 
 Function GetShortcutTarget(sPath As String) As String
@@ -2369,12 +2376,7 @@ End Function
 
 Function GetExtensionDescription(Path As String) As String
     Dim SFI As SHFILEINFO
-    Dim PathPtr&, SfiPtr&, SfiSize&
-    PathPtr = StrPtr(Path)
-    SfiPtr = VarPtr(SFI)
-    SfiSize = LenB(SFI)
-    
-    If SHGetFileInfo(PathPtr, 0&, SfiPtr, SfiSize, SHGFI_USEFILEATTRIBUTES Or SHGFI_TYPENAME) = 0 Then GoTo onfail
+    If SHGetFileInfo(Path, 0&, SFI, LenB(SFI), SHGFI_USEFILEATTRIBUTES Or SHGFI_TYPENAME) = 0& Then GoTo onfail
     GetExtensionDescription = SFI.szTypeName
 onfail:
 End Function

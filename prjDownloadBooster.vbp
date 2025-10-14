@@ -70,6 +70,7 @@ UserControl=krools_comctl\SpinBox\SpinBox.ctl
 Module=RunMemory; RunMemory.bas
 Form=frmSkinnedFrame.frm
 Form=frmSystemFrameProperties.frm
+PropertyPage=krools_comctl\ImageList\PPImageListImages.pag
 ResFile32="Booster.res"
 IconForm="frmDummyForm"
 Startup="Sub Main"
