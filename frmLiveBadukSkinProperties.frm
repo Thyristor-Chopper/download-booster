@@ -357,6 +357,31 @@ Option Explicit
 Public SkinnedFrame As frmSkinnedFrame
 #End If
 
+Implements IBSSubclass
+
+Private Function IBSSubclass_MsgResponse(ByVal hWnd As Long, ByVal uMsg As Long) As EMsgResponse
+    IBSSubclass_MsgResponse = emrConsume
+End Function
+
+Private Sub IBSSubclass_UnsubclassIt()
+    DetachMessage Me, fFrameColor.hWnd, WM_PRINTCLIENT
+    DetachMessage Me, fFrameBackground.hWnd, WM_PRINTCLIENT
+End Sub
+
+Private Function IBSSubclass_WindowProc(ByVal hWnd As Long, ByVal uMsg As Long, ByRef wParam As Long, ByRef lParam As Long, ByRef bConsume As Boolean) As Long
+    On Error Resume Next
+ 
+    Select Case uMsg
+        Case WM_PRINTCLIENT
+            SendMessage hWnd, WM_PAINT, wParam, ByVal 0&
+            
+            IBSSubclass_WindowProc = 0&
+            Exit Function
+    End Select
+    
+    IBSSubclass_WindowProc = CallOldWindowProc(hWnd, uMsg, wParam, lParam)
+End Function
+
 Private Sub cmdCancel_Click()
     Unload Me
 End Sub
@@ -448,9 +473,14 @@ Private Sub Form_Load()
     tr Label1, "&Progress text color:"
     tr chkEnableFontSize, "Label text &size:"
     tr chkBold, "&Bold text"
+    
+    AttachMessage Me, fFrameColor.hWnd, WM_PRINTCLIENT
+    AttachMessage Me, fFrameBackground.hWnd, WM_PRINTCLIENT
 End Sub
 
 Private Sub Form_Unload(Cancel As Integer)
+    IBSSubclass_UnsubclassIt
+
 #If DISABLEFRAMESKIN Then
 #Else
     Unload SkinnedFrame
