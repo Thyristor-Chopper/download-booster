@@ -523,11 +523,6 @@ Private Sub ListFiles()
     If LenB(ListedOn) And ListedOn = lvDir.Path Then Exit Sub
     ListedOn = lvDir.Path
     LoadFinished = False
-    
-    Set lvFiles.Icons = Nothing
-    Set lvFiles.SmallIcons = Nothing
-    SendMessage lvFiles.hWnd, LVM_SETIMAGELIST, LVSIL_NORMAL, ByVal hSysImgListLarge
-    SendMessage lvFiles.hWnd, LVM_SETIMAGELIST, LVSIL_SMALL, ByVal hSysImgListSmall
 
     Dim li As LvwListItem
     Dim i%, k#
@@ -568,7 +563,7 @@ Private Sub ListFiles()
     Dim FolderCount&: FolderCount = 0
     If Len(lvDir.Path) > 3 Then
         tbToolBar.Buttons(2).Enabled = True
-        SHGetFileInfo Environ$("TEMP"), &H10&, FileInfo, SfiSize, SHGFI_USEFILEATTRIBUTES Or SHGFI_SYSICONINDEX Or SHGFI_SMALLICON
+        SHGetFileInfo "x", &H10&, FileInfo, SfiSize, SHGFI_USEFILEATTRIBUTES Or SHGFI_SYSICONINDEX Or SHGFI_SMALLICON
         Icon = FileInfo.iIcon + 1
         Set li = lvFiles.ListItems.Add(, "..", "..", Icon, Icon, Directory)
         li.ListSubItems.Add , , "-"
@@ -729,13 +724,18 @@ Private Sub Form_Activate()
     txtFileName.SetFocus
     Loaded = True
     If Not LoadFinished Then Exit Sub
-    hSysImgListLarge = SHGetFileInfo(vbNullString, 0&, 0&, 0&, SHGFI_SYSICONINDEX Or SHGFI_LARGEICON)
-    hSysImgListSmall = SHGetFileInfo(vbNullString, 0&, 0&, 0&, SHGFI_SYSICONINDEX Or SHGFI_SMALLICON)
     ListFiles
     Shown = True
 End Sub
 
 Private Sub Form_Load()
+    hSysImgListLarge = SHGetFileInfo(vbNullString, 0&, 0&, 0&, SHGFI_SYSICONINDEX Or SHGFI_LARGEICON)
+    hSysImgListSmall = SHGetFileInfo(vbNullString, 0&, 0&, 0&, SHGFI_SYSICONINDEX Or SHGFI_SMALLICON)
+    Set lvFiles.Icons = Nothing
+    Set lvFiles.SmallIcons = Nothing
+    SendMessage lvFiles.hWnd, LVM_SETIMAGELIST, LVSIL_NORMAL, ByVal hSysImgListLarge
+    SendMessage lvFiles.hWnd, LVM_SETIMAGELIST, LVSIL_SMALL, ByVal hSysImgListSmall
+
     Shown = False
     On Error Resume Next
     InitForm Me
@@ -1282,9 +1282,14 @@ Private Sub lvFiles_ContextMenu(ByVal X As Single, ByVal Y As Single)
         If Item.Selected Then
             mnuRename.Enabled = ((Item.Tag = file Or Item.Tag = Directory) And Item.Text <> "..")
             mnuDelete.Enabled = (Not IsMyComputer) And Item.Text <> ".."
-            mnuExplore.Visible = IsMyComputer Or Item.Tag = Directory
+            mnuExplore.Visible = (IsMyComputer Or Item.Tag = Directory)
             mnuOpen.Enabled = (IsMyComputer Or Item.Tag = file Or Item.Tag = Directory)
-            mnuProperties.Enabled = (((Item.Tag = file Or Item.Tag = Directory) And Item.Text <> "..") Or IsMyComputer)
+            mnuProperties.Enabled = ((Item.Tag = file Or Item.Tag = Directory) Or IsMyComputer)
+            If Item.Tag = Directory And Item.Text = ".." Then
+                mnuOpen.Enabled = False
+                mnuExplore.Enabled = False
+                mnuProperties.Enabled = False
+            End If
             If Tags.BrowseTargetForm = 2 Then
                 mnuSelect.Enabled = (Item.Tag = Directory Or IsMyComputer) And LoadFinished
             Else
@@ -1876,7 +1881,7 @@ Private Sub CreateNewFolder()
     Dim Item As LvwListItem
     Dim SFI As SHFILEINFO
     Dim Icon&
-    SHGetFileInfo Environ$("TEMP"), &H10&, SFI, Len(SFI), SHGFI_USEFILEATTRIBUTES Or SHGFI_SYSICONINDEX Or SHGFI_SMALLICON
+    SHGetFileInfo "x", &H10&, SFI, Len(SFI), SHGFI_USEFILEATTRIBUTES Or SHGFI_SYSICONINDEX Or SHGFI_SMALLICON
     Icon = SFI.iIcon + 1
     Set Item = lvFiles.ListItems.Add(, , DirName, Icon, Icon, Directory)
     Item.ListSubItems.Add , , "-"

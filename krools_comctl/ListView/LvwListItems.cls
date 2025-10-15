@@ -73,7 +73,7 @@ End Sub
 
 Public Function Add(Optional ByVal Index As Long, Optional ByVal Key As String, Optional ByVal Text As String, Optional ByVal Icon As Variant, Optional ByVal SmallIcon As Variant, Optional Tag As Variant) As LvwListItem
 Attribute Add.VB_Description = "Adds a list item to the list items collection."
-If Index > (PropListItem.Count + 1) Or Index < 0 Then Err.Raise Number:=35600, Description:="Index out of bounds"
+'If Index > (PropListItem.Count + 1) Or Index < 0 Then Err.Raise Number:=35600, Description:="Index out of bounds"
 Dim IconIndex As Long
 If IsMissing(Icon) Then
     Icon = Empty

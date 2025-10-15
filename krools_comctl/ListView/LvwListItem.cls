@@ -59,11 +59,7 @@ Private Sub Class_Terminate()
 If PropShadowListSubItemsCount > 0 Then Erase PropShadowListSubItems()
 End Sub
 
-#If VBA7 Then
-Friend Sub FInit(ByVal ObjectPointer As LongPtr, ByVal Index As Long, ByVal Key As String, ByVal Ptr As LongPtr, ByVal Text As String, ByVal Icon As Variant, ByVal IconIndex As Long, ByVal SmallIcon As Variant, ByVal SmallIconIndex As Long)
-#Else
 Friend Sub FInit(ByVal ObjectPointer As Long, ByVal Index As Long, ByVal Key As String, ByVal Ptr As Long, ByVal Text As String, ByVal Icon As Variant, ByVal IconIndex As Long, ByVal SmallIcon As Variant, ByVal SmallIconIndex As Long)
-#End If
 ShadowObjectPointer = ObjectPointer
 PropIndex = Index
 PropKey = Key
