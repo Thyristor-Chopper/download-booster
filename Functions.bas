@@ -143,6 +143,7 @@ Declare Function EndDeferWindowPos Lib "user32" (ByVal hWinPosInfo As Long) As L
 Declare Function FindFirstFile Lib "kernel32" Alias "FindFirstFileA" (ByVal lpFileName As String, lpFindFileData As WIN32_FIND_DATA) As Long
 Declare Function FindNextFile Lib "kernel32" Alias "FindNextFileA" (ByVal hFindFile As Long, lpFindFileData As WIN32_FIND_DATA) As Long
 Declare Function FindClose Lib "kernel32" (ByVal hFindFile As Long) As Long
+
 Public Const INVALID_HANDLE_VALUE As Long = -1&
 
 Type WIN32_FIND_DATA
@@ -1014,13 +1015,12 @@ keyerr:
     RegCloseKey hKey
     GetSubkeys = Keys
 End Function
-'
-'https://stackoverflow.com/questions/40651/check-if-a-record-exists-in-a-vb6-collection
+
 Function Exists(oCol As Collection, vKey As String) As Boolean
     On Error Resume Next
-    oCol.Item CStr(vKey)
-    Exists = (Err.Number = 0)
     Err.Clear
+    oCol.Item vKey
+    Exists = (Err.Number = 0)
 End Function
 
 Function TextWidth(s As String, Optional ByVal FontName As String = "", Optional ByVal FontSize As Integer = -1, Optional FontBold As Boolean = False) As Single
@@ -1522,7 +1522,7 @@ Function ParseSize(ByVal Size As Double, Optional ByVal ShowBytes As Boolean = F
 
     On Error GoTo ErrLn4
     Dim ret#
-    If Size >= (1024# * 1024# * 1024# * 1024#) Then
+    If Size >= 1024# * 1024# * 1024# * 1024# Then
         ret = Fix(Size / 1024# / 1024# / 1024# / 1024# * 100) / 100
         If ret >= 100# Then
             ret = Fix(ret)
@@ -1530,7 +1530,7 @@ Function ParseSize(ByVal Size As Double, Optional ByVal ShowBytes As Boolean = F
             ret = Fix(ret * 10) / 10
         End If
         ParseSize = ret & "TB" & Suffix
-    ElseIf Size >= (1024# * 1024# * 1024#) Then
+    ElseIf Size >= 1024# * 1024# * 1024# Then
         ret = Fix(Size / 1024# / 1024# / 1024# * 100) / 100
         If ret >= 100# Then
             ret = Fix(ret)
@@ -1538,7 +1538,7 @@ Function ParseSize(ByVal Size As Double, Optional ByVal ShowBytes As Boolean = F
             ret = Fix(ret * 10) / 10
         End If
         ParseSize = ret & "GB" & Suffix
-    ElseIf Size >= (1024# * 1024#) Then
+    ElseIf Size >= 1024# * 1024# Then
         ret = Fix(Size / 1024# / 1024# * 100) / 100
         If ret >= 100# Then
             ret = Fix(ret)
@@ -1546,7 +1546,7 @@ Function ParseSize(ByVal Size As Double, Optional ByVal ShowBytes As Boolean = F
             ret = Fix(ret * 10) / 10
         End If
         ParseSize = ret & "MB" & Suffix
-    ElseIf Size >= (1024#) Then
+    ElseIf Size >= 1024# Then
         ret = Fix(Size / 1024# * 100) / 100
         If ret >= 100# Then
             ret = Fix(ret)
@@ -1910,21 +1910,21 @@ Function GetShortcutTarget(sPath As String) As String
     Dim lnk As ShellLinkObject, i As Long, folderPath As String
     Dim Shortcutname As String
 
-    On Error GoTo ErrRtn
+    On Error GoTo exit_sub
     folderPath = GetParentFolderName(sPath)
     Set shl = New Shell
     Set fld = shl.NameSpace(folderPath)
     Set file = fld.Items.Item(GetFilename(sPath))
     If Err Then
-        GetShortcutTarget = " Not Accesible"
-        Err.Clear
+        GetShortcutTarget = "."
         GoTo exit_sub
     Else
         If file.IsLink Then
             Set lnk = file.GetLink
             GetShortcutTarget = lnk.Path
+            If Left$(GetShortcutTarget, 1) = """" And Right$(GetShortcutTarget, 1) = """" Then GetShortcutTarget = Mid$(GetShortcutTarget, 2, Len(GetShortcutTarget) - 2)
         Else
-            GetShortcutTarget = " Not decoded"
+            GetShortcutTarget = "."
         End If
     End If
 exit_sub:
@@ -1932,10 +1932,6 @@ exit_sub:
     Set file = Nothing
     Set fld = Nothing
     Set shl = Nothing
-    Exit Function
-ErrRtn:
-    Err.Clear
-    Resume exit_sub
 End Function
 
 Function atob(sText As String) As Byte()
@@ -2331,10 +2327,10 @@ Sub OpenFolder(ByVal Path As String)
     ShellExecute Path
 End Sub
 
-Function RemoveQuotes(Path As String) As String
-    RemoveQuotes = Path
-    If Left$(RemoveQuotes, 1) = """" And Right$(RemoveQuotes, 1) = """" Then RemoveQuotes = Mid$(RemoveQuotes, 2, Len(RemoveQuotes) - 2)
-End Function
+'Function RemoveQuotes(Path As String) As String
+'    RemoveQuotes = Path
+'    If Left$(RemoveQuotes, 1) = """" And Right$(RemoveQuotes, 1) = """" Then RemoveQuotes = Mid$(RemoveQuotes, 2, Len(RemoveQuotes) - 2)
+'End Function
 
 Sub ShowFileDialog(Optional TargetForm As Byte, Optional PresetPath As String, Optional ForceNewDialog As Boolean)
     Tags.BrowsePresetPath = PresetPath

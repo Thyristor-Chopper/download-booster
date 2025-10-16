@@ -435,6 +435,9 @@ Dim LoadFinished As Boolean
 Dim hSysImgListLarge As Long
 Dim hSysImgListSmall As Long
 Dim Shown As Boolean
+Dim FolderIcon&, FolderTypeName$
+
+Const SfiSize As Long = 352&
 
 Private Enum ItemType
     Directory = 0
@@ -548,24 +551,19 @@ Private Sub ListFiles()
     
     Dim Path$, Name$
     Path = lvDir.Path
-    Dim IsDesktop As Boolean
-    IsDesktop = (Path = GetSpecialFolder(CSIDL_DESKTOP))
     
-    Dim totalcnt As Double
+    Dim totalcnt#: totalcnt = 0#
     If Right$(Path, 1) <> "\" Then Path = Path & "\"
     On Error Resume Next
     tbToolBar.Buttons(2).Enabled = False
     
     lvFiles.Redraw = False
-    Dim Icon&
+    Dim Icon&, ExtName$
     Dim FileInfo As SHFILEINFO
-    Dim SfiSize&: SfiSize = Len(FileInfo)
-    Dim FolderCount&: FolderCount = 0
+    Dim FolderCount&: FolderCount = 0&
     If Len(lvDir.Path) > 3 Then
         tbToolBar.Buttons(2).Enabled = True
-        SHGetFileInfo "x", &H10&, FileInfo, SfiSize, SHGFI_USEFILEATTRIBUTES Or SHGFI_SYSICONINDEX Or SHGFI_SMALLICON
-        Icon = FileInfo.iIcon + 1
-        Set li = lvFiles.ListItems.Add(, "..", "..", Icon, Icon, Directory)
+        Set li = lvFiles.ListItems.Add(, "..", "..", FolderIcon, FolderIcon, Directory)
         li.ListSubItems.Add , , "-"
         li.ListSubItems.Add , , t("상위 폴더", "Parent Folder")
         li.ListSubItems.Add , , "-"
@@ -579,22 +577,26 @@ Private Sub ListFiles()
     
     Dim PatternMatched As Boolean
     Dim PatternsSplit() As String
-    Dim CurrentPattern$
-    Dim ExtName$
     PatternsSplit = Split(LCase(Pattern), ";")
-    Dim cnt As Double
-    Dim ext As String
-    Dim UseFileAttr As Boolean
-    Dim ShellIcon As IPicture, ShellSmallIcon As IPicture
-    Dim IconFlags As Long
     Dim PatternL As Byte, PatternU As Byte
     PatternL = LBound(PatternsSplit)
     PatternU = UBound(PatternsSplit)
+    For i = PatternL To PatternU
+        'PatternsSplit(i) = Trim$(PatternsSplit(i))
+        If PatternsSplit(i) = "*.*" Then PatternsSplit(i) = "*"
+    Next i
     
+    Dim TypeNameCache As New Collection
+    Dim IconIndexCache As New Collection
+    
+    Dim ext As String
     Dim ItemTag As ItemType
     Dim FullPath As String
     Dim WFD As WIN32_FIND_DATA
     Dim hFind As Long
+    Dim SfiFileName As String
+    Dim CallSfi As Boolean
+    Dim SkipCache As Boolean
     hFind = FindFirstFile(Path & "*", WFD)
     If hFind <> INVALID_HANDLE_VALUE Then
         Do
@@ -603,43 +605,57 @@ Private Sub ListFiles()
             If ShowUnixHidden = False And Left$(Name, 1) = "." Then GoTo NextFindItem
             If InStr(Name, "?") Then GoTo NextFindItem
             FullPath = Path & Name
-            
-            SHGetFileInfo FullPath, 0&, FileInfo, SfiSize, SHGFI_SYSICONINDEX Or SHGFI_SMALLICON Or SHGFI_TYPENAME
-            Icon = FileInfo.iIcon + 1
-            ExtName = Left$(FileInfo.szTypeName, InStr(FileInfo.szTypeName, vbNullChar) - 1)
-            
+
             If WFD.dwFileAttributes And vbDirectory Then
                 If Name = "." Or Name = ".." Then GoTo NextFindItem
                 FolderCount = FolderCount + 1
-                
-                Set li = lvFiles.ListItems.Add(FolderCount, , Name, Icon, Icon, Directory)
+
+                Set li = lvFiles.ListItems.Add(FolderCount, , Name, FolderIcon, FolderIcon, Directory)
                 li.ListSubItems.Add Text:="-"
-                li.ListSubItems.Add Text:=ExtName
-                li.ListSubItems.Add Text:="-"
+                li.ListSubItems.Add Text:=FolderTypeName
+                li.ListSubItems.Add Text:=FormatModified(FileDateTime(FullPath))
             ElseIf ShowFiles Then
                 PatternMatched = False
                 For i = PatternL To PatternU
-                    CurrentPattern = Trim$(PatternsSplit(i))
-                    If CurrentPattern = "*.*" Then CurrentPattern = "*"
-                    PatternMatched = (LCase(Name) Like CurrentPattern)
+                    PatternMatched = (LCase(Name) Like PatternsSplit(i))
                     If PatternMatched Then Exit For
                 Next i
                 If (Not PatternMatched) Then GoTo NextFindItem
+                
+                ext = UCase(GetExtensionName(Name))
+                'If ext = "EXE" Or ext = "COM" Or ext = "LNK" Or ext = "PIF" Or ext = "SCR" Or ext = "URL" Or ext = "ICO" Or ext = "PSD" Or ext = "AI" Then
+                If ext = "EXE" Or ext = "LNK" Or ext = "PIF" Or ext = "SCR" Or ext = "ICO" Then
+                    SfiFileName = FullPath
+                    CallSfi = True
+                    SkipCache = True
+                Else
+                    SfiFileName = "." & ext
+                    CallSfi = (Exists(IconIndexCache, ext) = False)
+                    SkipCache = False
+                End If
+                If CallSfi Then
+                    SHGetFileInfo SfiFileName, 0&, FileInfo, SfiSize, SHGFI_USEFILEATTRIBUTES Or SHGFI_SYSICONINDEX Or SHGFI_TYPENAME
+                    Icon = FileInfo.iIcon + 1
+                    ExtName = Left$(FileInfo.szTypeName, InStr(FileInfo.szTypeName, vbNullChar) - 1)
+                    If SkipCache = False Then
+                        IconIndexCache.Add Icon, ext
+                        TypeNameCache.Add ExtName, ext
+                    End If
+                ElseIf SkipCache = False Then
+                    Icon = IconIndexCache(ext)
+                    ExtName = TypeNameCache(ext)
+                End If
 
                 ItemTag = file
-                ext = UCase(GetExtensionName(Name))
                 If ext = "LNK" Then
-                    If FolderExists(RemoveQuotes(GetShortcutTarget(FullPath))) Then
-                        ItemTag = Directory
-                    End If
+                    If FolderExists(GetShortcutTarget(FullPath)) Then ItemTag = Directory
                 End If
-                
+
                 Set li = lvFiles.ListItems.Add(lvFiles.ListItems.Count + 1, , Name, Icon, Icon, ItemTag)
                 li.ListSubItems.Add Text:=ParseSize(FileLen(FullPath))
-                If LenB(Trim$(ExtName)) = 0 Then ExtName = ext & " " & t("파일", "File")
                 li.ListSubItems.Add Text:=ExtName
                 li.ListSubItems.Add Text:=FormatModified(FileDateTime(FullPath))
-                
+
                 If Not FirstListed Then
                     If Tags.BrowseTargetForm >= 3 And Tags.BrowseTargetForm <= 6 Then
                         If LCase(Name) = LCase(GetFilename(Tags.BrowsePresetPath)) Then
@@ -649,7 +665,26 @@ Private Sub ListFiles()
                     End If
                 End If
             End If
-            TotalCntProc totalcnt
+
+            If totalcnt >= 250 Then
+                If totalcnt = 250 Then
+                    cbFolderList.Enabled = False
+                    'tbPlaces.Enabled = False
+                    tbToolBar.Enabled = False
+                    chkHidden.Enabled = False
+                    chkUnixHidden.Enabled = False
+                    chkShowFiles.Enabled = False
+                    selFileType.Enabled = False
+                    OKButton.Enabled = False
+                    CancelButton.Enabled = False
+                    Label1.Enabled = False
+                    Label4.Enabled = False
+                    txtFileName.Enabled = False
+                    Label2.Enabled = False
+                End If
+                If totalcnt Mod 100# = 0# Then DoEvents
+            End If
+            totalcnt = totalcnt + 1#
 NextFindItem:
         Loop While FindNextFile(hFind, WFD)
         FindClose hFind
@@ -672,28 +707,6 @@ NextFindItem:
     Label4.Enabled = True
     txtFileName.Enabled = True
     Label2.Enabled = True
-End Sub
-
-Private Sub TotalCntProc(ByRef totalcnt As Double)
-    If totalcnt >= 250 Then
-        If totalcnt = 250 Then
-            cbFolderList.Enabled = 0
-            'tbPlaces.Enabled = 0
-            tbToolBar.Enabled = 0
-            chkHidden.Enabled = 0
-            chkUnixHidden.Enabled = 0
-            chkShowFiles.Enabled = 0
-            selFileType.Enabled = 0
-            OKButton.Enabled = 0
-            CancelButton.Enabled = 0
-            Label1.Enabled = 0
-            Label4.Enabled = 0
-            txtFileName.Enabled = 0
-            Label2.Enabled = 0
-        End If
-        If totalcnt Mod 100 = 0 Then DoEvents
-    End If
-    totalcnt = totalcnt + 1
 End Sub
 
 Private Sub chkShowFiles_Click()
@@ -731,18 +744,21 @@ End Sub
 Private Sub Form_Load()
     hSysImgListLarge = SHGetFileInfo(vbNullString, 0&, 0&, 0&, SHGFI_SYSICONINDEX Or SHGFI_LARGEICON)
     hSysImgListSmall = SHGetFileInfo(vbNullString, 0&, 0&, 0&, SHGFI_SYSICONINDEX Or SHGFI_SMALLICON)
+    
     Set lvFiles.Icons = Nothing
     Set lvFiles.SmallIcons = Nothing
     SendMessage lvFiles.hWnd, LVM_SETIMAGELIST, LVSIL_NORMAL, ByVal hSysImgListLarge
     SendMessage lvFiles.hWnd, LVM_SETIMAGELIST, LVSIL_SMALL, ByVal hSysImgListSmall
+    
+    Dim SFI As SHFILEINFO
+    SHGetFileInfo "x", &H10&, SFI, SfiSize, SHGFI_USEFILEATTRIBUTES Or SHGFI_SYSICONINDEX Or SHGFI_TYPENAME
+    FolderIcon = SFI.iIcon + 1
+    FolderTypeName = Left$(SFI.szTypeName, InStr(SFI.szTypeName, vbNullChar) - 1)
 
     Shown = False
     On Error Resume Next
     InitForm Me
     LoadFinished = True
-    
-'    Set ExtToIcon = New Collection
-'    Set ExtToSmallIcon = New Collection
     
     lvFiles.ColumnHeaders.Add , , t("이름", "Name"), 2295
     lvFiles.ColumnHeaders.Add(, , t("크기", "Size"), 1455).Alignment = LvwColumnHeaderAlignmentRight
@@ -753,13 +769,13 @@ Private Sub Form_Load()
     
     Select Case Tags.BrowseTargetForm
         Case 3, 5, 6
-            AddItemToComboBox selFileType, t("모든 그림", "All pictures") & " (*.JPG; *.JPEG; *.JPE; *.JFIF; *.GIF; *.BMP; *.DIB; *.RLE; *.PNG; *.TIF; *.TIFF; *.WMF; *.EMF; *.ICO; *.CUR)"
-            AddItemToComboBox selFileType, "JPEG (*.JPG; *.JPEG; *.JPE; *.JFIF)"
+            AddItemToComboBox selFileType, t("모든 그림", "All pictures") & " (*.JPG;*.JPEG;*.JPE;*.JFIF;*.GIF;*.BMP;*.DIB;*.RLE;*.PNG;*.TIF;*.TIFF;*.WMF;*.EMF;*.ICO;*.CUR)"
+            AddItemToComboBox selFileType, "JPEG (*.JPG;*.JPEG;*.JPE;*.JFIF)"
             AddItemToComboBox selFileType, "GIF (*.GIF)"
-            AddItemToComboBox selFileType, t("비트맵", "Bitmap") & " (*.BMP; *.DIB; *.RLE)"
+            AddItemToComboBox selFileType, t("비트맵", "Bitmap") & " (*.BMP;*.DIB;*.RLE)"
             AddItemToComboBox selFileType, "PNG (*.PNG)"
-            AddItemToComboBox selFileType, "TIFF (*.TIF; *.TIFF)"
-            AddItemToComboBox selFileType, t("메타파일", "Metafile") & " (*.WMF; *.EMF)"
+            AddItemToComboBox selFileType, "TIFF (*.TIF;*.TIFF)"
+            AddItemToComboBox selFileType, t("메타 파일", "Meta file") & " (*.WMF;*.EMF)"
             AddItemToComboBox selFileType, t("아이콘", "Icon") & " (*.ICO)"
             AddItemToComboBox selFileType, t("커서", "Cursor") & " (*.CUR)"
         Case 4
@@ -966,13 +982,12 @@ Private Sub ShowMyComputer()
     Dim TotalSpace As Double
     Dim FreeSpace As Double
     Dim SFI As SHFILEINFO
-    Dim SfiSize&: SfiSize = Len(SFI)
     Dim DriveLetter$
     On Error Resume Next
     lvFiles.Redraw = False
     For k = 0 To selDrive.ListCount - 1
         DriveLetter = UCase(Left$(selDrive.List(k), 2))
-        SHGetFileInfo DriveLetter & "\", 0&, SFI, SfiSize, SHGFI_SYSICONINDEX Or SHGFI_SMALLICON Or SHGFI_TYPENAME
+        SHGetFileInfo DriveLetter & "\", 0&, SFI, SfiSize, SHGFI_USEFILEATTRIBUTES Or SHGFI_SYSICONINDEX Or SHGFI_TYPENAME
         Icon = SFI.iIcon + 1
         Select Case GetDriveType(DriveLetter)
             Case DRIVE_FIXED, DRIVE_UNKNOWN, DRIVE_NO_ROOT_DIR
@@ -1468,7 +1483,7 @@ Private Sub mnuExplore_Click()
     
     If lvFiles.SelectedItem.Tag = Directory And UCase(GetExtensionName(lvFiles.SelectedItem.Text)) = "LNK" And (Not FolderExists(FullPath)) Then
         Dim LnkPath As String
-        LnkPath = RemoveQuotes(GetShortcutTarget(FullPath))
+        LnkPath = GetShortcutTarget(FullPath)
         If FolderExists(LnkPath) Then
             FullPath = LnkPath
             GoTo isfolder
@@ -1517,7 +1532,7 @@ Private Sub mnuOpen_Click()
     End If
     
     If (lvFiles.SelectedItem.Tag = file Or lvFiles.SelectedItem.Tag = Directory) And UCase(GetExtensionName(lvFiles.SelectedItem.Text)) = "LNK" And (Not FolderExists(FullPath)) Then
-        FullPath = RemoveQuotes(GetShortcutTarget(FullPath))
+        FullPath = GetShortcutTarget(FullPath)
     End If
     
 exec:
@@ -1613,7 +1628,7 @@ Private Sub OKButton_Click()
         
             If lvFiles.SelectedItem.Tag = Directory And UCase(GetExtensionName(lvFiles.SelectedItem.Text)) = "LNK" And (Not FolderExists(FullPath)) Then
                 Dim LnkPath As String
-                LnkPath = RemoveQuotes(GetShortcutTarget(FullPath))
+                LnkPath = GetShortcutTarget(FullPath)
                 If FolderExists(LnkPath) Then FullPath = LnkPath
             End If
             
@@ -1803,10 +1818,14 @@ Private Sub selFileType_Change()
 End Sub
 
 Private Sub selFileType_Click()
-    Pattern = Replace(Mid$(selFileType.Text, InStr(1, selFileType.Text, "(") + 1, Len(selFileType.Text) - InStr(1, selFileType.Text, "(") - 1), " ", "")
-    If Not LoadFinished Then Exit Sub
-    ListedOn = ""
-    If Loaded Then ListFiles
+    Dim NewPattern As String
+    NewPattern = Replace(Mid$(selFileType.Text, InStr(1, selFileType.Text, "(") + 1, Len(selFileType.Text) - InStr(1, selFileType.Text, "(") - 1), " ", "")
+    If Pattern <> NewPattern Then
+        Pattern = NewPattern
+        If Not LoadFinished Then Exit Sub
+        ListedOn = ""
+        If Loaded Then ListFiles
+    End If
 End Sub
 
 Private Sub tbPlaces_ButtonClick(ByVal Button As TbrButton)
@@ -1865,7 +1884,7 @@ Private Sub CreateNewFolder()
     Dim DirName$
     Dim FullPath$
     Do
-        DirName = CStr(Fix(Rnd * 100000000))
+        DirName = Fix(Rnd * 100000000)
         If Right$(lvDir.Path, 1) = "\" Then
             FullPath = lvDir.Path & DirName
         Else
@@ -1879,13 +1898,9 @@ Private Sub CreateNewFolder()
         Exit Sub
     End If
     Dim Item As LvwListItem
-    Dim SFI As SHFILEINFO
-    Dim Icon&
-    SHGetFileInfo "x", &H10&, SFI, Len(SFI), SHGFI_USEFILEATTRIBUTES Or SHGFI_SYSICONINDEX Or SHGFI_SMALLICON
-    Icon = SFI.iIcon + 1
-    Set Item = lvFiles.ListItems.Add(, , DirName, Icon, Icon, Directory)
+    Set Item = lvFiles.ListItems.Add(, , DirName, FolderIcon, FolderIcon, Directory)
     Item.ListSubItems.Add , , "-"
-    Item.ListSubItems.Add , , t("파일 폴더", "File Folder")
+    Item.ListSubItems.Add , , FolderTypeName
     Item.ListSubItems.Add , , FileDateTime(FullPath)
     Item.EnsureVisible
     Item.Selected = True
