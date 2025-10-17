@@ -2,7 +2,7 @@ VERSION 5.00
 Begin VB.Form frmLiveBadukSkinProperties 
    BorderStyle     =   3  '크기 고정 대화 상자
    Caption         =   "스킨 설정"
-   ClientHeight    =   6000
+   ClientHeight    =   6330
    ClientLeft      =   45
    ClientTop       =   435
    ClientWidth     =   5310
@@ -19,7 +19,7 @@ Begin VB.Form frmLiveBadukSkinProperties
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
-   ScaleHeight     =   6000
+   ScaleHeight     =   6330
    ScaleWidth      =   5310
    ShowInTaskbar   =   0   'False
    StartUpPosition =   1  '소유자 가운데
@@ -327,7 +327,7 @@ Begin VB.Form frmLiveBadukSkinProperties
       Height          =   345
       Left            =   3000
       TabIndex        =   24
-      Top             =   5520
+      Top             =   5880
       Width           =   1335
       _ExtentX        =   2355
       _ExtentY        =   609
@@ -338,11 +338,20 @@ Begin VB.Form frmLiveBadukSkinProperties
       Height          =   345
       Left            =   960
       TabIndex        =   23
-      Top             =   5520
+      Top             =   5880
       Width           =   1335
       _ExtentX        =   2355
       _ExtentY        =   609
       Caption         =   "확인"
+   End
+   Begin VB.Label Label2 
+      BackStyle       =   0  '투명
+      Caption         =   "HiDPI 환경에서는 스킨이 깨져 나올 수 있습니다."
+      Height          =   375
+      Left            =   240
+      TabIndex        =   25
+      Top             =   5580
+      Width           =   4935
    End
 End
 Attribute VB_Name = "frmLiveBadukSkinProperties"
@@ -473,6 +482,7 @@ Private Sub Form_Load()
     tr Label1, "&Progress text color:"
     tr chkEnableFontSize, "Label text &size:"
     tr chkBold, "&Bold text"
+    tr Label2, "The skin might shown aliased in HiDPI displays."
     
     AttachMessage Me, fFrameColor.hWnd, WM_PRINTCLIENT
     AttachMessage Me, fFrameBackground.hWnd, WM_PRINTCLIENT

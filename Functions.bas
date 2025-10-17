@@ -123,7 +123,7 @@ Private Declare Function SetFileTime Lib "kernel32" (ByVal hFile As Long, lpCrea
 Private Declare Function SystemTimeToFileTime Lib "kernel32" (lpSystemTime As SYSTEMTIME, lpFileTime As FILETIME) As Long
 Private Declare Function LocalFileTimeToFileTime Lib "kernel32" (lpLocalFileTime As FILETIME, lpFileTime As FILETIME) As Long
 Private Declare Function GetTimeZoneInformation Lib "kernel32" (lpTimeZoneInformation As TIME_ZONE_INFORMATION) As Long
-'Declare Function CreateSolidBrush Lib "gdi32" (ByVal crColor As Long) As Long
+Declare Function CreateSolidBrush Lib "gdi32" (ByVal crColor As Long) As Long
 'Declare Sub IUnknown_AtomicRelease Lib "shlwapi" (ppUnk As Any)
 Declare Function OleCreatePictureIndirect Lib "oleaut32" (lpPictDesc As PICTDESC, riid As IID, ByVal fOwn As Boolean, lplpvObj As IPicture) As Long
 Declare Function SHGetFileInfo Lib "shell32" Alias "SHGetFileInfoA" (ByVal pszPath As String, ByVal dwFileAttributes As Long, psfi As Any, ByVal cbSizeFileInfo As Long, ByVal uFlags As Long) As Long
@@ -143,6 +143,7 @@ Declare Function EndDeferWindowPos Lib "user32" (ByVal hWinPosInfo As Long) As L
 Declare Function FindFirstFile Lib "kernel32" Alias "FindFirstFileA" (ByVal lpFileName As String, lpFindFileData As WIN32_FIND_DATA) As Long
 Declare Function FindNextFile Lib "kernel32" Alias "FindNextFileA" (ByVal hFindFile As Long, lpFindFileData As WIN32_FIND_DATA) As Long
 Declare Function FindClose Lib "kernel32" (ByVal hFindFile As Long) As Long
+Private Declare Function FillRect Lib "user32" (ByVal hDC As Long, lpRect As RECT, ByVal hBrush As Long) As Long
 
 Public Const INVALID_HANDLE_VALUE As Long = -1&
 
@@ -887,7 +888,7 @@ Function ShowColorDialog(Optional ByVal hParent As Long, Optional ByVal bFullOpe
         End If
     End If
 
-    If Not aColorRef(0) Then
+    If aColorRef(0) = 0& Then
         aColorRef(0) = RGB(233, 245, 236)
         aColorRef(1) = RGB(233, 237, 243)
         aColorRef(2) = RGB(185, 209, 234)
@@ -1213,7 +1214,7 @@ Function ShowMessageBox(ByVal Content As String, Optional ByVal Title As String,
     LineCount = UBound(Split(Content, vbLf)) + 1
     Dim s%
     Dim ln$
-    Dim CI%, c$
+    Dim CI%, C$
     Dim LineContent$
     For s = 0 To UBound(Split(Content, vbCrLf))
         LineContent = Split(Content, vbCrLf)(s)
@@ -1567,11 +1568,9 @@ ErrLn4:
 End Function
 
 Function FilterFilename(FileName As String, Optional ByVal PreserveBackslash As Boolean) As String
-    Dim Str As String
-    Dim ret As String
-    ret = ""
-    Str = StrConv(FileName, vbProperCase)
-    Dim i%
+    Dim Str$: Str = StrConv(FileName, vbProperCase)
+    Dim ret$: ret = ""
+    Dim i&
     For i = 1 To Len(Str)
         If Mid$(Str, i, 1) = "?" Then
             ret = ret & "_"
@@ -1737,6 +1736,7 @@ Sub SetFont(frm As Form, Optional ByVal Force As Boolean = False)
     frm.Font.Size = FontSize
     Dim ctrl As Control
     For Each ctrl In frm.Controls
+        If TypeOf ctrl Is SpinBox Then GoTo continue
         ctrl.Font.Name = FontName
         If ctrl.Tag <> "nocolorsizechange" And ctrl.Tag <> "nosizechange" Then ctrl.Font.Size = FontSize
         ctrl.FontName = FontName
@@ -1747,6 +1747,7 @@ Sub SetFont(frm As Form, Optional ByVal Force As Boolean = False)
         End If
         ctrl.FontItalic = False
         ctrl.Font.Italic = False
+continue:
     Next ctrl
 setlbfont:
     If frm Is frmMain Then
@@ -1790,7 +1791,6 @@ Function FormatTime(Sec) As String
     Else
         ret = ""
     End If
-
     If Sec >= 60 Then
         ret = ret & Floor((Sec Mod 3600) / 60) & t("Ка ", " minutes and ")
     End If
@@ -1811,12 +1811,11 @@ End Function
 
 Sub BuildHeaderCache()
     Dim Headers() As String
-    Dim RawHeaders As String
-    RawHeaders = ""
+    Dim RawHeaders$: RawHeaders = ""
     On Error GoTo dontbuild
     Headers = GetAllSettings("DownloadBooster", "Options\Headers")
     On Error GoTo 0
-    Dim i%
+    Dim i&
     For i = LBound(Headers) To UBound(Headers)
         RawHeaders = RawHeaders & LCase(Headers(i, 0)) & ": " & Headers(i, 1) & vbLf
     Next i
@@ -1827,18 +1826,11 @@ End Sub
 
 Function DecodeHeaderCache(HeaderCache As String) As Collection
     Set DecodeHeaderCache = New Collection
-    Dim Headers As Collection
-    Dim HeaderKeys As Collection
-    Set Headers = New Collection
-    Set HeaderKeys = New Collection
+    Dim Headers As New Collection, HeaderKeys As New Collection
     If LenB(HeaderCache) = 0 Then GoTo returncollection
-    Dim RawHeaders$
-    RawHeaders = StrConv(atob(HeaderCache), vbUnicode)
-    Dim HeaderSplit() As String
-    HeaderSplit = Split(RawHeaders, vbLf)
-    Dim HeaderLine$
-    Dim ColonPos%
-    Dim i%
+    Dim RawHeaders$: RawHeaders = StrConv(atob(HeaderCache), vbUnicode)
+    Dim HeaderSplit() As String: HeaderSplit = Split(RawHeaders, vbLf)
+    Dim i&, HeaderLine$, ColonPos%
     For i = LBound(HeaderSplit) To UBound(HeaderSplit)
         HeaderLine = HeaderSplit(i)
         ColonPos = InStr(HeaderLine, ": ")
@@ -1927,6 +1919,7 @@ Function GetShortcutTarget(sPath As String) As String
             GetShortcutTarget = "."
         End If
     End If
+    
 exit_sub:
     Set lnk = Nothing
     Set file = Nothing
@@ -2093,8 +2086,7 @@ Function IsYtdlSupported(URL As String) As Boolean
 End Function
 #End If
 
-Sub tr(ByRef ctrl As Object, EnglishCaption As String)
-    'On Error Resume Next
+Sub tr(ctrl As Object, EnglishCaption As String)
     If LangID <> 1042 Then ctrl.Caption = EnglishCaption
 End Sub
 
@@ -2127,12 +2119,12 @@ Sub PlayWave(ByVal Path As String, Optional ByVal LoopWave As Boolean = False, O
     End If
 End Sub
 
-Sub EnableFrameControls(ByRef fFrame As Control, ByRef Except As Control, Optional ByVal Enable As Boolean = True)
-    Dim ctrl As Control
-    For Each ctrl In fFrame.ContainedControls
-        If Not ctrl Is Except Then ctrl.Enabled = Enable
-    Next ctrl
-End Sub
+'Sub EnableFrameControls(ByRef fFrame As Control, ByRef Except As Control, Optional ByVal Enable As Boolean = True)
+'    Dim ctrl As Control
+'    For Each ctrl In fFrame.ContainedControls
+'        If Not ctrl Is Except Then ctrl.Enabled = Enable
+'    Next ctrl
+'End Sub
 
 Function Max(ByVal L As Double, ByVal R As Double) As Double
     If L > R Then
@@ -2197,11 +2189,11 @@ Sub UpdateDPI()
     DPI = GetDPI()
 End Sub
 
-Function Ceil(val)
-    Dim Rounded
+Function Ceil(val) As Double
+    Dim Rounded As Double
     Rounded = Round(val)
     If Rounded < val Then
-        Ceil = Rounded + 1
+        Ceil = Rounded + 1#
     Else
         Ceil = Rounded
     End If
@@ -2281,17 +2273,12 @@ End Sub
 
 Sub NextTabPage(ByRef tsTabStrip As TabStrip, Optional ByVal Reverse As Boolean = False)
     On Error Resume Next
-    Dim A%, B%, X%, Y%, Z%
+    Dim A%, B%, X%, Y%, Z%, C%
     A = tsTabStrip.Tabs.Count
     B = tsTabStrip.SelectedItem.Index
-    If Reverse Then X = 1 Else X = A
-    If Reverse Then Y = A Else Y = 1
-    If Reverse Then Z = -1 Else Z = 1
-    If B = X Then
-        tsTabStrip.Tabs(Y).Selected = True
-    Else
-        tsTabStrip.Tabs(B + Z).Selected = True
-    End If
+    If Reverse Then X = 1: Y = A: Z = -1 Else X = A: Y = 1: Z = 1
+    If B = X Then C = Y Else C = B + Z
+    tsTabStrip.Tabs(C).Selected = True
 End Sub
 
 Sub InitForm(ByRef frmForm As Form)
@@ -2311,15 +2298,33 @@ noskin:
 #End If
 End Sub
 
-Function GenerateSolidColor(ByVal Color As Long) As IPictureDisp
-    frmDummyForm.pbDummy.Cls
-    frmDummyForm.pbDummy.DrawWidth = 5
-    frmDummyForm.pbDummy.Width = 15
-    frmDummyForm.pbDummy.Height = 15
-    frmDummyForm.pbDummy.Line (0, 0)-(15, 15), Color
-    frmDummyForm.pbDummy.Refresh
-    Set GenerateSolidColor = frmDummyForm.pbDummy.Image
-    frmDummyForm.pbDummy.Cls
+Function GenerateSolidColor(ByVal Color As Long) As IPicture
+    Dim hDC As Long, hMemDC As Long
+    Dim hBitmap As Long, hOldBmp As Long
+    Dim hBrush As Long
+    Dim RC As RECT
+    Dim pic As PICTDESC
+    
+    hDC = GetDC(0&)
+    hMemDC = CreateCompatibleDC(hDC)
+    hBitmap = CreateCompatibleBitmap(hDC, 1&, 1&)
+    hOldBmp = SelectObject(hMemDC, hBitmap)
+    hBrush = CreateSolidBrush(Color)
+    
+    RC.Right = 1&
+    RC.Bottom = 1&
+    FillRect hMemDC, RC, hBrush
+    
+    DeleteObject hBrush
+    SelectObject hMemDC, hOldBmp
+    DeleteDC hMemDC
+    ReleaseDC 0&, hDC
+    
+    pic.cbSize = Len(pic)
+    pic.PicType = 1& 'PICTYPE_BITMAP
+    pic.hgdiObj = hBitmap
+    
+    OleCreatePictureIndirect pic, IPictureIID, True, GenerateSolidColor
 End Function
 
 Sub OpenFolder(ByVal Path As String)
@@ -2372,9 +2377,9 @@ End Function
 
 Function GetExtensionDescription(Path As String) As String
     Dim SFI As SHFILEINFO
-    If SHGetFileInfo(Path, 0&, SFI, LenB(SFI), SHGFI_USEFILEATTRIBUTES Or SHGFI_TYPENAME) = 0& Then GoTo onfail
-    GetExtensionDescription = SFI.szTypeName
-onfail:
+    If SHGetFileInfo(Path, 0&, SFI, LenB(SFI), SHGFI_USEFILEATTRIBUTES Or SHGFI_TYPENAME) <> 0& Then
+        GetExtensionDescription = SFI.szTypeName
+    End If
 End Function
 
 Sub InitPropertySheetDimensions(frmForm As Form, tsTabStrip As TabStrip, Panels As Object, OKButton As CommandButtonW, CancelButton As CommandButtonW, Optional ApplyButton As CommandButtonW)
@@ -2531,36 +2536,35 @@ Function CreateRectRgnFix(ByVal X1 As Long, ByVal Y1 As Long, ByVal X2 As Long, 
     CreateRectRgnFix = CreateRectRgn(X1 * DPIScale, Y1 * DPIScale, X2 * DPIScale, Y2 * DPIScale)
 End Function
 
-Sub DrawTabBackground(frmForm As Form, tsTabStrip As TabStrip, pbPanel As Object, Optional Refresh As Boolean = True)
-    On Error Resume Next
-    Dim ctrl As Control
-    Dim i As Byte
-    
-    For i = pbPanel.LBound To pbPanel.UBound
-        tsTabStrip.DrawBackground pbPanel(i).hWnd, pbPanel(i).hDC
-    Next i
-    
-    If Not Refresh Then Exit Sub
-    For Each ctrl In frmForm.Controls
-        If TypeOf ctrl Is FrameW Or TypeOf ctrl Is CheckBoxW Or TypeOf ctrl Is CommandButtonW Then
-            ctrl.Refresh
-        ElseIf TypeOf ctrl Is Slider Then
-            ctrl.Refresh
-            ctrl.VisualStyles = Not ctrl.VisualStyles
-            ctrl.VisualStyles = Not ctrl.VisualStyles
-        End If
-    Next ctrl
-End Sub
+'Sub DrawTabBackground(frmForm As Form, tsTabStrip As TabStrip, pbPanel As Object, Optional Refresh As Boolean = True)
+'    On Error Resume Next
+'    Dim ctrl As Control
+'    Dim i As Byte
+'
+'    For i = pbPanel.LBound To pbPanel.UBound
+'        tsTabStrip.DrawBackground pbPanel(i).hWnd, pbPanel(i).hDC
+'    Next i
+'
+'    If Not Refresh Then Exit Sub
+'    For Each ctrl In frmForm.Controls
+'        If TypeOf ctrl Is FrameW Or TypeOf ctrl Is CheckBoxW Or TypeOf ctrl Is CommandButtonW Then
+'            ctrl.Refresh
+'        ElseIf TypeOf ctrl Is Slider Then
+'            ctrl.Refresh
+'            ctrl.VisualStyles = Not ctrl.VisualStyles
+'            ctrl.VisualStyles = Not ctrl.VisualStyles
+'        End If
+'    Next ctrl
+'End Sub
 
-Sub SetLabelText(lbl As Label, ByVal fullText As String)
-    Dim i As Long
-    Dim tempText As String
-    lbl = fullText
-    If TextWidth(fullText, lbl.Font.Name, lbl.Font.Size, lbl.Font.Bold) > lbl.Width Then
-        For i = Len(fullText) To 1 Step -1
-            tempText = Left$(fullText, i) & "..."
-            If TextWidth(tempText, lbl.Font.Name, lbl.Font.Size, lbl.Font.Bold) <= lbl.Width Then
-                lbl = tempText
+Sub SetLabelText(lbl As Label, FullText As String)
+    Dim i&, TempText$
+    lbl = FullText
+    If TextWidth(FullText, lbl.Font.Name, lbl.Font.Size, lbl.Font.Bold) > lbl.Width Then
+        For i = Len(FullText) To 1 Step -1
+            TempText = Left$(FullText, i) & "..."
+            If TextWidth(TempText, lbl.Font.Name, lbl.Font.Size, lbl.Font.Bold) <= lbl.Width Then
+                lbl = TempText
                 Exit Sub
             End If
         Next i
@@ -2568,6 +2572,8 @@ Sub SetLabelText(lbl As Label, ByVal fullText As String)
     End If
 End Sub
 
+#If DISABLEFRAMESKIN Then
+#Else
 Function CompareRect(R1 As RECT, R2 As RECT) As Boolean
     CompareRect = (R1.Bottom = R2.Bottom And R1.Left = R2.Left And R1.Right = R2.Right And R1.Top = R2.Top)
 End Function
@@ -2578,3 +2584,4 @@ Function GetDCFromPicture(pic As StdPicture) As Long
     SelectObject hDCMem, pic.Handle
     GetDCFromPicture = hDCMem
 End Function
+#End If

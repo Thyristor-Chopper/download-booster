@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin VB.Form frmDummyForm 
    BorderStyle     =   0  '없음
-   ClientHeight    =   3090
+   ClientHeight    =   1215
    ClientLeft      =   0
    ClientTop       =   0
-   ClientWidth     =   4680
+   ClientWidth     =   1260
    ClipControls    =   0   'False
    ControlBox      =   0   'False
    BeginProperty Font 
@@ -22,8 +22,8 @@ Begin VB.Form frmDummyForm
    MinButton       =   0   'False
    Moveable        =   0   'False
    NegotiateMenus  =   0   'False
-   ScaleHeight     =   3090
-   ScaleWidth      =   4680
+   ScaleHeight     =   1215
+   ScaleWidth      =   1260
    ShowInTaskbar   =   0   'False
    StartUpPosition =   3  'Windows 기본값
    Visible         =   0   'False
@@ -46,16 +46,6 @@ Begin VB.Form frmDummyForm
       ImageHeight     =   16
       MaskColor       =   16711935
       InitListImages  =   "frmDummyForm.frx":22D2
-   End
-   Begin VB.PictureBox pbDummy 
-      AutoRedraw      =   -1  'True
-      Height          =   135
-      Left            =   720
-      ScaleHeight     =   75
-      ScaleWidth      =   75
-      TabIndex        =   0
-      Top             =   600
-      Width           =   135
    End
    Begin prjDownloadBooster.ImageList imgFiles 
       Left            =   0

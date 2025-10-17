@@ -580,9 +580,9 @@ Begin VB.Form frmMain
       Tag             =   "forcebgchange"
       Top             =   2640
       Visible         =   0   'False
-      Width           =   5175
-      _ExtentX        =   0
-      _ExtentY        =   0
+      Width           =   6015
+      _ExtentX        =   10610
+      _ExtentY        =   5741
       BorderStyle     =   0
       Transparent     =   -1  'True
       Begin VB.Label lblRemaining 
@@ -592,7 +592,7 @@ Begin VB.Form frmMain
          Left            =   1320
          TabIndex        =   67
          Top             =   2580
-         Width           =   4335
+         Width           =   4695
       End
       Begin VB.Label Label10 
          BackStyle       =   0  '투명
@@ -619,7 +619,7 @@ Begin VB.Form frmMain
          Left            =   1320
          TabIndex        =   62
          Top             =   60
-         Width           =   4335
+         Width           =   4695
       End
       Begin VB.Label lblTotalSizeThread 
          BackStyle       =   0  '투명
@@ -628,7 +628,7 @@ Begin VB.Form frmMain
          Left            =   1320
          TabIndex        =   61
          Top             =   2220
-         Width           =   4335
+         Width           =   4695
       End
       Begin VB.Label Label7 
          BackStyle       =   0  '투명
@@ -646,7 +646,7 @@ Begin VB.Form frmMain
          Left            =   1320
          TabIndex        =   59
          Top             =   1860
-         Width           =   4335
+         Width           =   4695
       End
       Begin VB.Label Label6 
          BackStyle       =   0  '투명
@@ -673,7 +673,7 @@ Begin VB.Form frmMain
          Left            =   1320
          TabIndex        =   56
          Top             =   1500
-         Width           =   4335
+         Width           =   4695
       End
       Begin VB.Label lblElapsed 
          BackStyle       =   0  '투명
@@ -682,7 +682,7 @@ Begin VB.Form frmMain
          Left            =   1320
          TabIndex        =   55
          Top             =   1140
-         Width           =   4335
+         Width           =   4695
       End
       Begin VB.Label Label4 
          BackStyle       =   0  '투명
@@ -700,7 +700,7 @@ Begin VB.Form frmMain
          Left            =   1320
          TabIndex        =   53
          Top             =   780
-         Width           =   4335
+         Width           =   4695
       End
       Begin VB.Label Label3 
          BackStyle       =   0  '투명
@@ -718,7 +718,7 @@ Begin VB.Form frmMain
          Left            =   1320
          TabIndex        =   51
          Top             =   420
-         Width           =   4335
+         Width           =   4695
       End
       Begin VB.Label Label2 
          BackStyle       =   0  '투명
@@ -1794,7 +1794,7 @@ progressAvailable:
         SetLabelText lblFilename, GetFilename(output)
         If BatchStarted Then
             lvBatchFiles.ListItems(CurrentBatchIdx).ListSubItems(1).Text = output
-            lvBatchFiles.ListItems(CurrentBatchIdx).Text = lblFilename.Caption
+            lvBatchFiles.ListItems(CurrentBatchIdx).Text = lblFilename
         End If
     ElseIf Left$(Data, 16) = "SETMODIFIEDDATE " Then
         On Error Resume Next
@@ -3129,7 +3129,7 @@ Private Sub Form_Load()
         trThreadCount.TickFrequency = 8
     ElseIf MAX_THREAD_COUNT >= 50 Then
         trThreadCount.TickFrequency = 4
-    ElseIf MAX_THREAD_COUNT <= 15 Then
+    ElseIf MAX_THREAD_COUNT <= 16 Then
         trThreadCount.TickFrequency = 1
     End If
     trThreadCount.Max = MAX_THREAD_COUNT
