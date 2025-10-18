@@ -78,8 +78,7 @@ Sub Main()
 
     App.Title = t(App.Title, "Download Booster")
 
-    Dim OverrideWinver$
-    OverrideWinver = GetSetting("DownloadBooster", "Options\Debug", "WindowsVersionOverride", "")
+    Dim OverrideWinver$: OverrideWinver = GetSetting("DownloadBooster", "Options\Debug", "WindowsVersionOverride", "")
     If OverrideWinver <> "" And IsNumeric(OverrideWinver) Then
         On Error GoTo dontoverrideversion
         WinVer = CSng(OverrideWinver)
@@ -97,14 +96,13 @@ dontoverrideversion:
     End If
 
     On Error GoTo deftrdcnt
-    Dim RawMaxThreads$
-    RawMaxThreads = GetSetting("DownloadBooster", "Options", "MaxThreadCount", "25")
+    Dim RawMaxThreads$: RawMaxThreads = GetSetting("DownloadBooster", "Options", "MaxThreadCount", "25")
     If Not IsNumeric(RawMaxThreads) Then
 deftrdcnt:
         SaveSetting "DownloadBooster", "Options", "MaxThreadCount", "25"
         GoTo aftertrdcntverify
     ElseIf CDbl(RawMaxThreads) > MAX_THREAD_COUNT_CONTROL Then
-        SaveSetting "DownloadBooster", "Options", "MaxThreadCount", CStr(MAX_THREAD_COUNT_CONTROL)
+        SaveSetting "DownloadBooster", "Options", "MaxThreadCount", MAX_THREAD_COUNT_CONTROL
     ElseIf CDbl(RawMaxThreads) < 2 Then
         SaveSetting "DownloadBooster", "Options", "MaxThreadCount", "2"
     ElseIf CStr(CInt(RawMaxThreads)) <> RawMaxThreads Then
@@ -119,9 +117,9 @@ aftertrdcntverify:
         .Data3 = &H101A
         .Data4(0) = &H8B
         .Data4(1) = &HBB
-        .Data4(2) = &H0
+        '.Data4(2) = &H0
         .Data4(3) = &HAA
-        .Data4(4) = &H0
+        '.Data4(4) = &H0
         .Data4(5) = &H30
         .Data4(6) = &HC
         .Data4(7) = &HAB
@@ -130,8 +128,7 @@ aftertrdcntverify:
     'Is64 = IsWOW64()
     LaunchFromMemory = (GetSetting("DownloadBooster", "Options", "RunDownloaderInMemory", "1") <> "0")
 
-    Dim CachePathSuffix$
-    CachePathSuffix = "\BOOSTER_JS_CACHE\"
+    Dim CachePathSuffix$: CachePathSuffix = "\BOOSTER_JS_CACHE\"
     If LenB(Trim$(Environ$("TEMP"))) = 0 Then
         If LenB(Environ$("SystemDrive")) = 0 Then
             CachePath = "C:" & CachePathSuffix
@@ -151,9 +148,6 @@ aftertrdcntverify:
         ExtractResource 2, RCData, NodeFileName
     End If
 
-    Set MsgBoxResults = New Collection
-    Set SessionHeaders = New Collection
-    Set SessionHeaderKeys = New Collection
     SessionHeaderCache = ""
 
     UpdateBorderWidth
@@ -186,10 +180,11 @@ forcegulim:
     End If
     BuildHeaderCache
     
-    If GetSetting("DownloadBooster", "Options", "EnableLiveBadukMemoSkin", "0") <> "0" Then
-        DeleteSetting "DownloadBooster", "Options", "EnableLiveBadukMemoSkin"
-        SaveSetting "DownloadBooster", "Options", "ProgressFrameSkin", 2
-        SaveSetting "DownloadBooster", "Options", "ButtonSkin", 1
+    If GetSetting("DownloadBooster", "Options", "ButtonSkin", -1) = -1 Then
+        If GetSetting("DownloadBooster", "Options", "EnableLiveBadukMemoSkin", "0") <> "0" Then
+            SaveSetting "DownloadBooster", "Options", "ProgressFrameSkin", 2
+            SaveSetting "DownloadBooster", "Options", "ButtonSkin", 1
+        End If
     End If
     
     ButtonSkinBorder(1) = 3
@@ -292,7 +287,7 @@ forcegulim:
 '    RunFromMemory NodeJS, si, pi
 
     Randomize
-    InitVisualStylesFixes
+    'InitVisualStylesFixes
     frmMain.Show vbModeless
     frmMain.SetFrameTexture
 End Sub

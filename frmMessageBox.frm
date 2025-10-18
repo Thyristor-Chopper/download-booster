@@ -333,7 +333,6 @@ Private Sub Form_QueryUnload(Cancel As Integer, UnloadMode As Integer)
     End If
     GetSystemMenu Me.hWnd, 1&
     If MsgBoxMode <> vbOKOnly Then
-        If Functions.MsgBoxResults Is Nothing Then Set Functions.MsgBoxResults = New Collection
         If Exists(Functions.MsgBoxResults, ResultID) Then Functions.MsgBoxResults.Remove ResultID
         Functions.MsgBoxResults.Add MsgBoxResult, ResultID
     End If

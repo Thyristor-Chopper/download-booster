@@ -15,8 +15,8 @@ Public Const MAX_32BIT_SIGNED_INT As Long = 2147483647
 Public Const PROPERTY_SHEET_BUTTON_WIDTH As Integer = 1320
 Public Const PROPERTY_SHEET_BUTTON_HEIGHT As Integer = 360
 
-Public MsgBoxResults As Collection
-Public InputBoxResults As Collection
+Public MsgBoxResults As New Collection
+Public InputBoxResults As New Collection
 
 'Declare Function SetProcessDpiAwarenessContext Lib "user32" (ByVal context As Long) As Long
 'Declare Function SetProcessDPIAware Lib "user32" () As Long
@@ -638,8 +638,8 @@ Const KEY_ALL_ACCESS = KEY_QUERY_VALUE + KEY_SET_VALUE + _
                        KEY_NOTIFY + KEY_CREATE_LINK + READ_CONTROL
 Const KEY_READ = &H20019
 
-Public SessionHeaders As Collection
-Public SessionHeaderKeys As Collection
+Public SessionHeaders As New Collection
+Public SessionHeaderKeys As New Collection
 Public HeaderCache As String
 Public SessionHeaderCache As String
 
@@ -985,7 +985,7 @@ GetKeyError:      ' 오류가 발생하면 지웁니다...
 End Function
 
 'https://www.vbforums.com/showthread.php?796771-RESOLVED-Help!-cannot-delete-registry-x64-subkeys&p=4894805
-Function GetSubkeys(ByVal KeyRoot As Long, KeyName As String) As String()
+Function GetSubkeys(ByVal KeyRoot As Long, KeyName As String, Output() As String) As Boolean
     Dim KeysRev() As String, Keys() As String
     Dim hKey&, i&, j&, nBufferLen&, sBuffer$
 
@@ -1007,14 +1007,15 @@ Function GetSubkeys(ByVal KeyRoot As Long, KeyName As String) As String()
         For i = j To 0& Step -1&
             Keys(j - i) = KeysRev(i)
         Next i
-        GetSubkeys = Keys
+        Output = Keys
         RegCloseKey hKey
+        GetSubkeys = True
         Exit Function
     End If
 
 keyerr:
     RegCloseKey hKey
-    GetSubkeys = Keys
+    GetSubkeys = False
 End Function
 
 Function Exists(oCol As Collection, vKey As String) As Boolean
@@ -1214,7 +1215,7 @@ Function ShowMessageBox(ByVal Content As String, Optional ByVal Title As String,
     LineCount = UBound(Split(Content, vbLf)) + 1
     Dim s%
     Dim ln$
-    Dim CI%, C$
+    Dim CI%, c$
     Dim LineContent$
     For s = 0 To UBound(Split(Content, vbCrLf))
         LineContent = Split(Content, vbCrLf)(s)
@@ -2273,12 +2274,12 @@ End Sub
 
 Sub NextTabPage(ByRef tsTabStrip As TabStrip, Optional ByVal Reverse As Boolean = False)
     On Error Resume Next
-    Dim A%, B%, X%, Y%, Z%, C%
+    Dim A%, B%, X%, Y%, Z%, c%
     A = tsTabStrip.Tabs.Count
     B = tsTabStrip.SelectedItem.Index
     If Reverse Then X = 1: Y = A: Z = -1 Else X = A: Y = 1: Z = 1
-    If B = X Then C = Y Else C = B + Z
-    tsTabStrip.Tabs(C).Selected = True
+    If B = X Then c = Y Else c = B + Z
+    tsTabStrip.Tabs(c).Selected = True
 End Sub
 
 Sub InitForm(ByRef frmForm As Form)

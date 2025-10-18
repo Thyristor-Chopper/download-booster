@@ -1426,7 +1426,7 @@ Public ImagePosition As Byte
 Dim TotalSize As Double
 Dim FormCaption$
 Dim LBFrameEnabled As Boolean
-Dim ErrorCodeDescription As Collection
+Dim ErrorCodeDescription As New Collection
 
 Const MAIN_FORM_WIDTH As Long = 9330
 
@@ -3074,7 +3074,6 @@ Private Sub Form_Load()
     On Error Resume Next
     
     '오류 코드 정보
-    Set ErrorCodeDescription = New Collection
     ErrorCodeDescription.Add t("서버와의 접속이 끊겼습니다. 다운로드 중 네트워크 오류가 발생했거나 주소가 유효하지 않거나 서버가 응답하지 않습니다.", "Network error"), "1"
     ErrorCodeDescription.Add t("주소나 파일 이름을 지정하지 않았습니다.", "Address or file name unspecified"), "102"
     ErrorCodeDescription.Add t("저장 경로가 존재하지 않습니다.", "Save path doesn't exist"), "103"

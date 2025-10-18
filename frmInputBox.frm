@@ -93,14 +93,12 @@ Public ResultID As String
 Public InputBoxObject As frmInputBox
 
 Private Sub cmdCancel_Click()
-    If Functions.InputBoxResults Is Nothing Then Set Functions.InputBoxResults = New Collection
     If Exists(Functions.InputBoxResults, ResultID) Then Functions.InputBoxResults.Remove ResultID
     Functions.InputBoxResults.Add "", ResultID
     Unload Me
 End Sub
 
 Private Sub cmdOK_Click()
-    If Functions.InputBoxResults Is Nothing Then Set Functions.InputBoxResults = New Collection
     If Exists(Functions.InputBoxResults, ResultID) Then Functions.InputBoxResults.Remove ResultID
     Functions.InputBoxResults.Add Trim$(txtInput.Text), ResultID
     Unload Me
