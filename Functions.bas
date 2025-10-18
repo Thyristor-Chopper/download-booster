@@ -10,6 +10,9 @@ Attribute VB_Name = "Functions"
 
 Option Explicit
 
+Public Const SfiSize As Long = 352&
+Public Const MiiSize As Long = 44&
+
 Public Const MAX_THREAD_COUNT_CONTROL As Integer = 655& '679&
 Public Const MAX_32BIT_SIGNED_INT As Long = 2147483647
 Public Const PROPERTY_SHEET_BUTTON_WIDTH As Integer = 1320
@@ -30,9 +33,10 @@ Private Declare Function GetVersionEx Lib "kernel32" Alias "GetVersionExA" (lpVe
 Declare Function DwmSetWindowAttribute Lib "dwmapi.dll" (ByVal hWnd As Long, ByVal dwAttribute As Long, ByRef pvAttribute As Long, ByVal cbAttribute As Long) As Long
 Private Declare Function DwmIsCompositionEnabled Lib "dwmapi.dll" (ByRef pfEnabled As Long) As Long
 'Declare Function DwmEnableComposition Lib "dwmapi.dll" (ByVal uCompositionAction As Long) As Long
-'Declare Function DwmExtendFrameIntoClientArea Lib "dwmapi.dll" (ByVal hWnd As Long, Margin As MARGINS) As Long
+Private Declare Function DwmExtendFrameIntoClientArea Lib "dwmapi.dll" (ByVal hWnd As Long, Margin As MARGINS) As Long
 'Declare Sub DwmGetColorizationParameters Lib "dwmapi.dll" Alias "#127" (ByRef Parameters As DWM_COLORIZATION_PARAMS)
 'Declare Sub DwmSetColorizationParameters Lib "dwmapi.dll" Alias "#131" (ByRef Parameters As DWM_COLORIZATION_PARAMS, Optional ByVal DoNotSaveToRegistry As Boolean = True)
+'Private Declare Function DwmGetColorizationColor Lib "dwmapi.dll" (ByRef pcrColorization As Long, ByRef pfOpaqueBlend As Long) As Long
 Private Declare Function RegOpenKeyEx Lib "advapi32" Alias "RegOpenKeyExA" (ByVal hKey As Long, ByVal lpSubKey As String, ByVal ulOptions As Long, ByVal samDesired As Long, ByRef phkResult As Long) As Long
 Private Declare Function RegQueryValueEx Lib "advapi32" Alias "RegQueryValueExA" (ByVal hKey As Long, ByVal lpValueName As String, ByVal lpReserved As Long, ByRef lpType As Long, ByVal lpData As String, ByRef lpcbData As Long) As Long
 Private Declare Function RegCloseKey Lib "advapi32" (ByVal hKey As Long) As Long
@@ -144,6 +148,7 @@ Declare Function FindFirstFile Lib "kernel32" Alias "FindFirstFileA" (ByVal lpFi
 Declare Function FindNextFile Lib "kernel32" Alias "FindNextFileA" (ByVal hFindFile As Long, lpFindFileData As WIN32_FIND_DATA) As Long
 Declare Function FindClose Lib "kernel32" (ByVal hFindFile As Long) As Long
 Private Declare Function FillRect Lib "user32" (ByVal hDC As Long, lpRect As RECT, ByVal hBrush As Long) As Long
+Declare Function SetLayeredWindowAttributes Lib "user32.dll" (ByVal hWnd As Long, ByVal crKey As Long, ByVal bAlpha As Byte, ByVal dwFlags As Long) As Long
 
 Public Const INVALID_HANDLE_VALUE As Long = -1&
 
@@ -164,6 +169,8 @@ Public Const WS_SIZEBOX As Long = &H40000
 
 Public Const WS_EX_APPWINDOW As Long = &H40000
 Public Const WS_EX_TOOLWINDOW As Long = &H80&
+Public Const WS_EX_LAYERED As Long = &H80000
+Public Const LWA_COLORKEY As Long = &H1&
 
 Public Const TPM_LEFTALIGN As Long = &H0&
 Public Const TPM_RETURNCMD As Long = &H100&
@@ -342,6 +349,7 @@ Public Const WM_SYSCOMMAND As Long = &H112&
 Public Const WM_INITMENU As Long = &H116&
 Public Const WM_SETTINGCHANGE As Long = &H1A
 Public Const WM_DWMCOMPOSITIONCHANGED As Long = &H31E&
+'Public Const WM_DWMCOLORIZATIONCOLORCHANGED As Long = &H320&
 Public Const WM_THEMECHANGED As Long = &H31A&
 Public Const WM_DPICHANGED As Long = &H2E0&
 Public Const WM_CTLCOLORSCROLLBAR As Long = &H137&
@@ -475,12 +483,12 @@ End Type
 '    Opaque As Boolean
 'End Type
 
-'Type MARGINS
-'    cxLeftWidth    As Long
-'    cxRightWidth   As Long
-'    cyTopHeight    As Long
-'    cyBottomHeight As Long
-'End Type
+Type MARGINS
+    cxLeftWidth    As Long
+    cxRightWidth   As Long
+    cyTopHeight    As Long
+    cyBottomHeight As Long
+End Type
 
 Enum AudioFormat
     Auto = 0
@@ -768,37 +776,45 @@ Function IsDWMEnabled() As Boolean
 nodwm:
 End Function
 
-'Sub ExtendDWMFrame(ByRef frmForm As Form, Top As Long, Right As Long, Bottom As Long, Left As Long)
-'    On Error Resume Next
-'    Dim Margin As MARGINS
-'    Margin.cxLeftWidth = Left
-'    Margin.cxRightWidth = Right
-'    Margin.cyTopHeight = Top
-'    Margin.cyBottomHeight = Bottom
-'    DwmExtendFrameIntoClientArea frmForm.hWnd, Margin
-'End Sub
+Function ExtendDWMFrame(ByRef frmForm As Form, Optional Top As Long, Optional Right As Long, Optional Bottom As Long, Optional Left As Long) As Long
+    On Error GoTo errhandle
+    Dim Margin As MARGINS
+    Margin.cxLeftWidth = Left
+    Margin.cxRightWidth = Right
+    Margin.cyTopHeight = Top
+    Margin.cyBottomHeight = Bottom
+    ExtendDWMFrame = DwmExtendFrameIntoClientArea(frmForm.hWnd, Margin)
+    Exit Function
+errhandle:
+    ExtendDWMFrame = -1&
+End Function
 
-Sub SetFormBackgroundColor(frmForm As Form, Optional DisableClassicTheme As Boolean = False)
+Sub SetFormBackgroundColor(frmForm As Form, Optional DisableClassicTheme As Boolean = False, Optional OverrideBackColor As Long = -1&)
     Dim clrBackColor As Long
     Dim clrForeColor As Long
     Dim DisableVisualStyle As Boolean
     Dim RoundButton As Boolean
     DisableVisualStyle = CBool(CInt(GetSetting("DownloadBooster", "Options", "DisableVisualStyle", 0)))
-    clrBackColor = GetSetting("DownloadBooster", "Options", "BackColor", DefaultBackColor)
     RoundButton = (GetSetting("DownloadBooster", "Options", "RoundClassicButtons", 0) <> 0)
-    If clrBackColor < 0 Or clrBackColor > 16777215 Then
-        If frmForm.BackColor <> &H8000000F Then frmForm.BackColor = &H8000000F
-        clrBackColor = &H8000000F
-    ElseIf GetSetting("DownloadBooster", "Options", "BackColorMainOnly", 0) <> 0 And (Not frmForm Is frmMain) Then
-        frmForm.BackColor = &H8000000F
-        clrBackColor = &H8000000F
-    Else
+    If OverrideBackColor >= 0& Then
+        clrBackColor = OverrideBackColor
         frmForm.BackColor = clrBackColor
+    Else
+        clrBackColor = GetSetting("DownloadBooster", "Options", "BackColor", DefaultBackColor)
+        If clrBackColor < 0& Or clrBackColor > 16777215 Then
+            If frmForm.BackColor <> &H8000000F Then frmForm.BackColor = &H8000000F
+            clrBackColor = &H8000000F
+        ElseIf GetSetting("DownloadBooster", "Options", "BackColorMainOnly", 0) <> 0 And (Not frmForm Is frmMain) Then
+            frmForm.BackColor = &H8000000F
+            clrBackColor = &H8000000F
+        Else
+            frmForm.BackColor = clrBackColor
+        End If
     End If
     Dim IsSystemColor As Boolean
     clrForeColor = GetSetting("DownloadBooster", "Options", "ForeColor", -1)
     IsSystemColor = (clrForeColor = -1)
-    If clrForeColor < 0 Or clrForeColor > 16777215 Then
+    If clrForeColor < 0& Or clrForeColor > 16777215 Then
         If frmForm.ForeColor <> &H80000012 Then frmForm.ForeColor = &H80000012
         clrForeColor = &H80000012
     ElseIf GetSetting("DownloadBooster", "Options", "ForeColorMainOnly", 0) <> 0 And (Not frmForm Is frmMain) Then
@@ -871,7 +887,7 @@ nextfor:
 End Sub
 
 Sub SetClassicTheme(frmForm As Form, Optional DisableClassicTheme As Boolean = False)
-    If GetSetting("DownloadBooster", "Options", "UseClassicThemeFrame", 0) <> 0 Then
+    If GetSetting("DownloadBooster", "Options", "UseClassicThemeFrame", 0) <> 0 And GetSetting("DownloadBooster", "Options", "UseAeroWindow", 0) = 0 Then
         RemoveVisualStyles frmForm.hWnd
     ElseIf DisableClassicTheme Then
         ActivateVisualStyles frmForm.hWnd
@@ -1737,8 +1753,14 @@ Sub SetFont(frm As Form, Optional ByVal Force As Boolean = False)
     frm.Font.Name = FontName
     frm.Font.Size = FontSize
     Dim ctrl As Control
+    Dim sbFont As New StdFont
+    sbFont.Name = FontName
+    sbFont.Size = FontSize
     For Each ctrl In frm.Controls
-        If TypeOf ctrl Is SpinBox Then GoTo continue
+        If TypeOf ctrl Is SpinBox Then
+            ctrl.Font = sbFont
+            GoTo continue
+        End If
         ctrl.Font.Name = FontName
         If ctrl.Tag <> "nocolorsizechange" And ctrl.Tag <> "nosizechange" Then ctrl.Font.Size = FontSize
         ctrl.FontName = FontName
@@ -2285,7 +2307,7 @@ End Sub
 
 Sub InitForm(ByRef frmForm As Form)
     On Error Resume Next
-    If GetSetting("DownloadBooster", "Options", "DisableDWMWindow", DefaultDisableDWMWindow) <> 0 Then DisableDWMWindow frmForm.hWnd
+    If GetSetting("DownloadBooster", "Options", "DisableDWMWindow", DefaultDisableDWMWindow) <> 0 And GetSetting("DownloadBooster", "Options", "UseAeroWindow", 0) = 0 Then DisableDWMWindow frmForm.hWnd
     SetFormBackgroundColor frmForm
     SetFont frmForm
     If MainFormOnTop Then SetWindowPos frmForm.hWnd, hWnd_TOPMOST, 0&, 0&, 0&, 0&, SWP_NOMOVE Or SWP_NOSIZE
@@ -2594,3 +2616,12 @@ Sub ExpandImageList(imlImageList As ImageList)
     imlImageList.ListImages.Add 1, Picture:=imlPicture
     imlImageList.ListImages.Add 5, Picture:=imlPicture
 End Sub
+
+'Function GetFrameColor() As Long
+'    Dim Color&, Opaque&
+'    If DwmGetColorizationColor(Color, Opaque) = 0& Then
+'        GetFrameColor = RGB(((Color And &HFF0000) \ &H10000), ((Color And &HFF00&) \ &H100&), (Color And &HFF))
+'    Else
+'        GetFrameColor = &HDBDCDC
+'    End If
+'End Function

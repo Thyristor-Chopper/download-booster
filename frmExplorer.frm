@@ -437,8 +437,6 @@ Dim hSysImgListSmall As Long
 Dim Shown As Boolean
 Dim FolderIcon&, FolderTypeName$
 
-Const SfiSize As Long = 352&
-
 Private Enum ItemType
     Directory = 0
     file = 1

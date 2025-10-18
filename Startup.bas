@@ -180,7 +180,7 @@ forcegulim:
     End If
     BuildHeaderCache
     
-    If GetSetting("DownloadBooster", "Options", "ButtonSkin", -1) = -1 Then
+    If GetSetting("DownloadBooster", "Options", "ButtonSkin", "-") = "-" Then
         If GetSetting("DownloadBooster", "Options", "EnableLiveBadukMemoSkin", "0") <> "0" Then
             SaveSetting "DownloadBooster", "Options", "ProgressFrameSkin", 2
             SaveSetting "DownloadBooster", "Options", "ButtonSkin", 1

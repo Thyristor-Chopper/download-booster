@@ -3,7 +3,7 @@ Begin VB.Form frmOptions
    BackColor       =   &H00FFFFFF&
    BorderStyle     =   3  '크기 고정 대화 상자
    Caption         =   "옵션"
-   ClientHeight    =   11100
+   ClientHeight    =   11340
    ClientLeft      =   2760
    ClientTop       =   3855
    ClientWidth     =   14805
@@ -21,7 +21,7 @@ Begin VB.Form frmOptions
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
-   ScaleHeight     =   11100
+   ScaleHeight     =   11340
    ScaleWidth      =   14805
    ShowInTaskbar   =   0   'False
    StartUpPosition =   1  '소유자 가운데
@@ -602,12 +602,10 @@ Begin VB.Form frmOptions
          End
          Begin VB.CheckBox chkAeroWindow 
             Caption         =   "유리 창 효과 사용(&G)"
-            Enabled         =   0   'False
             Height          =   255
-            Left            =   2880
+            Left            =   3480
             TabIndex        =   21
             Top             =   240
-            Visible         =   0   'False
             Width           =   2055
          End
          Begin VB.CheckBox chkAlwaysOnTop 
@@ -905,7 +903,7 @@ Begin VB.Form frmOptions
       ScaleWidth      =   7050
       TabIndex        =   3
       TabStop         =   0   'False
-      Top             =   5880
+      Top             =   6120
       Visible         =   0   'False
       Width           =   7050
       Begin VB.Frame Frame1 
@@ -1472,6 +1470,7 @@ Public PreviewSkinnedFrame As frmSkinnedFrame
 #End If
 
 Dim Loaded As Boolean
+Public GlassChanged As Boolean
 Public ColorChanged As Boolean
 Public ImageChanged As Boolean
 Public VisualStyleChanged As Boolean
@@ -1549,11 +1548,11 @@ Private Sub cbFrameSkin_Click()
     PreviewSkinnedFrame.SetSkin cbFrameSkin.ListIndex
 #End If
     
-    cmdAdvancedFrameSkin.Enabled = (cbFrameSkin.ListIndex = 0)
+    cmdAdvancedFrameSkin.Enabled = (cbFrameSkin.ListIndex = 0 And chkAeroWindow = 0)
 End Sub
 
 Private Sub cbImagePosition_Click()
-    chkCenter.Enabled = (cbImagePosition.ListIndex >= 1 And cbImagePosition.ListIndex <= 3)
+    chkCenter.Enabled = (cbImagePosition.ListIndex >= 1 And cbImagePosition.ListIndex <= 3 And chkAeroWindow = 0)
     If Loaded Then
         cmdApply.Enabled = -1
         ImageChanged = True
@@ -1743,6 +1742,19 @@ End Sub
 Private Sub cbWhenExist_Click()
     If Loaded Then
         cmdApply.Enabled = -1
+    End If
+End Sub
+
+Private Sub chkAeroWindow_Click()
+    Dim Enable As Boolean: Enable = (chkAeroWindow = 0)
+    chkBackColorMainOnly.Enabled = (Enable = True And optUserColor.Value = True)
+    Label10.Enabled = Enable
+    cbFrameSkin.Enabled = Enable
+    cmdAdvancedFrameSkin.Enabled = Enable
+
+    If Loaded Then
+        GlassChanged = True
+        cmdApply.Enabled = True
     End If
 End Sub
 
@@ -1990,7 +2002,13 @@ aftermaxtrdcheck:
     ElseIf optUserFore.Value Then
         SaveSetting "DownloadBooster", "Options", "ForeColor", CLng(pgFore.BackColor)
     End If
-    If ColorChanged Or VisualStyleChanged Or SkinChanged Then
+    Dim DWMEnabled As Boolean: DWMEnabled = IsDWMEnabled()
+    If DWMEnabled And GlassChanged Then
+        SaveSetting "DownloadBooster", "Options", "UseAeroWindow", chkAeroWindow
+        If chkAeroWindow = 1 Then frmMain.EnableGlassWindow _
+        Else frmMain.DisableGlassWindow
+    End If
+    If ColorChanged Or VisualStyleChanged Or SkinChanged Or GlassChanged Then
         SaveSetting "DownloadBooster", "Options", "DisableVisualStyle", DisableVisualStyle
         SaveSetting "DownloadBooster", "Options", "RoundClassicButtons", RoundClassicButtons
         
@@ -2019,13 +2037,17 @@ aftermaxtrdcheck:
         CurrentWindowSkin = cbFrameSkin.ListIndex
         
         SetFormBackgroundColor Me, True
-        SetFormBackgroundColor frmMain, True
+        If chkAeroWindow = 1 And DWMEnabled Then
+            SetFormBackgroundColor frmMain, True, frmMain.clrKey
+        Else
+            SetFormBackgroundColor frmMain, True
+        End If
         RedrawPreview
         'cmdChooseBackground.Refresh
         frmMain.pbProgressContainer.Refresh
         frmMain.SetTextColors
         
-        If NoDWMFrame Then
+        If NoDWMFrame And chkAeroWindow = 0 Then
             DisableDWMWindow Me.hWnd
             DisableDWMWindow frmMain.hWnd
         Else
@@ -2039,7 +2061,7 @@ aftermaxtrdcheck:
         SkinnedFrame.SetSkin CurrentWindowSkin
 #End If
     End If
-    If ProgressSkinChanged Then
+    If ProgressSkinChanged Or GlassChanged Then
         SaveSetting "DownloadBooster", "Options", "ProgressFrameSkin", cbProgressSkin.ListIndex
         frmMain.LoadLiveBadukSkin
         frmMain.SetupSplitButtons
@@ -2069,7 +2091,7 @@ aftermaxtrdcheck:
     End If
     SaveSetting "DownloadBooster", "Options", "ImagePosition", SaveImgPos
     frmMain.ImagePosition = SaveImgPos
-    If ImageChanged Then
+    If ImageChanged Or GlassChanged Then
         SaveSetting "DownloadBooster", "Options", "UseBackgroundImage", -(lvBackgrounds.ListIndex <> 0)
         SaveSetting "DownloadBooster", "Options", "BackgroundImagePath", ChangedBackgroundPath
         frmMain.SetBackgroundImage
@@ -2162,6 +2184,7 @@ Private Sub ResetChanged()
     ScrollChanged = False
     FontChanged = False
     PatternChanged = False
+    GlassChanged = False
 End Sub
 
 Private Sub cmdBrowseAsterisk_Click()
@@ -2638,6 +2661,10 @@ Private Sub Form_Load()
     
     AddItemToComboBox cbStartupPosition, t("이전 위치 기억", "Remember last position")
     AddItemToComboBox cbStartupPosition, t("화면 가운데", "Center of the screen")
+    AddItemToComboBox cbStartupPosition, t("자동", "Auto")
+    
+    chkAeroWindow.Enabled = IsDWMEnabled()
+    chkAeroWindow.Visible = (WinVer >= 6!)
     
     LoadSettings
     
@@ -2822,21 +2849,22 @@ Private Sub LoadSettings()
     'SetWindowPos Me.hWnd, IIf(MainFormOnTop, hWnd_TOPMOST, hWnd_NOTOPMOST), 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
     On Error Resume Next
     
-    chkNoRedirectCheck.Value = GetSetting("DownloadBooster", "Options", "NoRedirectCheck", 0)
-    chkForceGet.Value = GetSetting("DownloadBooster", "Options", "ForceGet", 1)
-    chkIgnore300.Value = GetSetting("DownloadBooster", "Options", "Ignore300", 0)
-    chkAlwaysOnTop.Value = -(MainFormOnTop)
-    chkLazyElapsed.Value = GetSetting("DownloadBooster", "Options", "LazyElapsed", 0)
-    chkForceOldDialog.Value = GetSetting("DownloadBooster", "Options", "ForceWin31Dialog", 0)
-    chkRememberURL.Value = GetSetting("DownloadBooster", "Options", "RememberURL", 1)
-    chkAutoYtdl.Value = GetSetting("DownloadBooster", "Options", "AutoDetectYtdlURL", 1)
-    chkAllowDuplicates.Value = GetSetting("DownloadBooster", "Options", "AllowDuplicatesInQueue", 0)
-    txtMaxThreadCount.Value = GetSetting("DownloadBooster", "Options", "MaxThreadCount", 25)
-    optLinePerScroll.Value = True
-    optScreenPerScroll.Value = (GetSetting("DownloadBooster", "Options", "ScrollOneScreen", 0) <> 0)
-    chkBackColorMainOnly.Value = GetSetting("DownloadBooster", "Options", "BackColorMainOnly", 0)
-    chkForeColorMainOnly.Value = GetSetting("DownloadBooster", "Options", "ForeColorMainOnly", 0)
-    chkUseServerModified.Value = GetSetting("DownloadBooster", "Options", "UseServerModifiedDate", 1)
+    chkNoRedirectCheck = GetSetting("DownloadBooster", "Options", "NoRedirectCheck", 0)
+    chkForceGet = GetSetting("DownloadBooster", "Options", "ForceGet", 1)
+    chkIgnore300 = GetSetting("DownloadBooster", "Options", "Ignore300", 0)
+    chkAlwaysOnTop = -(MainFormOnTop)
+    chkLazyElapsed = GetSetting("DownloadBooster", "Options", "LazyElapsed", 0)
+    chkForceOldDialog = GetSetting("DownloadBooster", "Options", "ForceWin31Dialog", 0)
+    chkRememberURL = GetSetting("DownloadBooster", "Options", "RememberURL", 1)
+    chkAutoYtdl = GetSetting("DownloadBooster", "Options", "AutoDetectYtdlURL", 1)
+    chkAllowDuplicates = GetSetting("DownloadBooster", "Options", "AllowDuplicatesInQueue", 0)
+    txtMaxThreadCount = GetSetting("DownloadBooster", "Options", "MaxThreadCount", 25)
+    optLinePerScroll = True
+    optScreenPerScroll = (GetSetting("DownloadBooster", "Options", "ScrollOneScreen", 0) <> 0)
+    chkBackColorMainOnly = GetSetting("DownloadBooster", "Options", "BackColorMainOnly", 0)
+    chkForeColorMainOnly = GetSetting("DownloadBooster", "Options", "ForeColorMainOnly", 0)
+    chkUseServerModified = GetSetting("DownloadBooster", "Options", "UseServerModifiedDate", 1)
+    chkAeroWindow = GetSetting("DownloadBooster", "Options", "UseAeroWindow", 0)
     Select Case CInt(GetSetting("DownloadBooster", "Options", "ThreadRequestInterval", 100))
         Case 10
             trRequestInterval.Value = 0
@@ -2973,6 +3001,7 @@ Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
 End Sub
 
 Private Sub lblSelectColor_Click()
+    If chkAeroWindow = 1 Then Exit Sub
     Dim Color As OLE_COLOR
     Color = ShowColorDialog(Me.hWnd, True, pgColor.BackColor)
     If Color = -1 Then Exit Sub
@@ -3051,7 +3080,7 @@ Private Sub optUserColor_Click()
     pgPatternPreview.BackColor = pbBackground.BackColor
     'cmdSample.Refresh
     RedrawPreview
-    chkBackColorMainOnly.Enabled = True
+    chkBackColorMainOnly.Enabled = (chkAeroWindow = 0)
     FrameW5.BackColor = pgColor.BackColor
     CheckBoxW1.BackColor = pgColor.BackColor
 End Sub

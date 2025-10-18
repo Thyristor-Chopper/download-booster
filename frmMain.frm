@@ -1420,6 +1420,8 @@ Public SkinnedFrame As frmSkinnedFrame
 
 Implements IBSSubclass
 
+Public clrKey As Long
+
 Dim Elapsed As Long
 Dim BatchStarted As Boolean
 Dim CurrentBatchIdx As Long
@@ -1437,6 +1439,9 @@ Dim TotalSize As Double
 Dim FormCaption$
 Dim LBFrameEnabled As Boolean
 Dim ErrorCodeDescription As New Collection
+Dim GlassEnabled As Boolean
+
+Dim BatchDownloadListShown As Boolean
 
 Const MAIN_FORM_WIDTH As Long = 9330
 
@@ -1467,6 +1472,22 @@ Private Enum DownloadStopMode
     BatchStop = 2
     ExitApplication = 3
 End Enum
+
+Sub EnableGlassWindow()
+    GlassEnabled = True
+    ExtendDWMFrame Me, -1&
+    SetWindowLong hWnd, GWL_EXSTYLE, GetWindowLong(Me.hWnd, GWL_EXSTYLE) Or WS_EX_LAYERED
+    clrKey = &HDBDCDC 'GetFrameColor()
+    SetLayeredWindowAttributes Me.hWnd, clrKey, 0&, LWA_COLORKEY
+    SetFormBackgroundColor Me, OverrideBackColor:=clrKey
+End Sub
+
+Sub DisableGlassWindow()
+    GlassEnabled = False
+    ExtendDWMFrame Me
+    SetWindowLong hWnd, GWL_EXSTYLE, GetWindowLong(Me.hWnd, GWL_EXSTYLE) And (Not WS_EX_LAYERED)
+    SetFormBackgroundColor Me
+End Sub
 
 #If HIDEYTDL Then
 #Else
@@ -1504,7 +1525,8 @@ Private Sub IBSSubclass_UnsubclassIt()
     DetachMessage Me, Me.hWnd, WM_GETMINMAXINFO
     DetachMessage Me, Me.hWnd, WM_INITMENU
     DetachMessage Me, Me.hWnd, WM_SYSCOMMAND
-    'DetachMessage Me, Me.hWnd, WM_DWMCOMPOSITIONCHANGED
+    DetachMessage Me, Me.hWnd, WM_DWMCOMPOSITIONCHANGED
+    'DetachMessage Me, Me.hWnd, WM_DWMCOLORIZATIONCOLORCHANGED
     DetachMessage Me, Me.hWnd, WM_SETTINGCHANGE
     DetachMessage Me, Me.hWnd, WM_THEMECHANGED
     DetachMessage Me, Me.hWnd, WM_CTLCOLORSCROLLBAR
@@ -1512,10 +1534,6 @@ End Sub
 
 Private Function IBSSubclass_WindowProc(ByVal hWnd As Long, ByVal uMsg As Long, ByRef wParam As Long, ByRef lParam As Long, ByRef bConsume As Boolean) As Long
     On Error Resume Next
-    
-    Dim hSysMenu As Long
-    Dim MII As MENUITEMINFO
-    Dim RC As RECT
     
     Select Case uMsg
         Case WM_GETMINMAXINFO
@@ -1530,38 +1548,66 @@ Private Function IBSSubclass_WindowProc(ByVal hWnd As Long, ByVal uMsg As Long, 
             IBSSubclass_WindowProc = 1&
             Exit Function
         Case WM_INITMENU
-            hSysMenu = GetSystemMenu(Me.hWnd, 0)
+            Dim hSysMenu As Long
+            Dim MII As MENUITEMINFO
+            MII.cbSize = MiiSize
+            hSysMenu = GetSystemMenu(Me.hWnd, 0&)
+            
             With MII
-                .cbSize = Len(MII)
                 .fMask = MIIM_STATE
-                .fState = MFS_ENABLED Or IIf(MainFormOnTop, MFS_CHECKED, 0)
+                .fState = MFS_ENABLED
+                If MainFormOnTop Then .fState = .fState Or MFS_CHECKED
             End With
-            SetMenuItemInfo hSysMenu, 1000, 0, MII
+            SetMenuItemInfo hSysMenu, 1000&, 0&, MII
+            With MII
+                '.fMask = MIIM_STATE
+                If BatchDownloadListShown Then
+                    .fState = MFS_ENABLED
+                Else
+                    .fState = MFS_DISABLED
+                End If
+            End With
+            SetMenuItemInfo hSysMenu, 1003&, 0&, MII
             
             IBSSubclass_WindowProc = 1&
             Exit Function
         Case WM_SYSCOMMAND
-            If wParam = 1000 Then '항상 위에 표시
+            If wParam = 1000& Then '항상 위에 표시
+                Dim InsertAfter&
                 MainFormOnTop = Not MainFormOnTop
-                SetWindowPos hWnd, IIf(MainFormOnTop, hWnd_TOPMOST, hWnd_NOTOPMOST), 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
-                SaveSetting "DownloadBooster", "Options", "AlwaysOnTop", -(MainFormOnTop)
+                If MainFormOnTop Then InsertAfter = hWnd_TOPMOST Else InsertAfter = hWnd_NOTOPMOST
+                SetWindowPos hWnd, InsertAfter, 0&, 0&, 0&, 0&, SWP_NOMOVE Or SWP_NOSIZE
+                SaveSetting "DownloadBooster", "Options", "AlwaysOnTop", -MainFormOnTop
                 
                 IBSSubclass_WindowProc = 1&
                 Exit Function
-            ElseIf wParam = 1003 And (Not (frmMain.Height <= 6930 + WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2)) Then '창 크기 초기화
+            ElseIf wParam = 1003& And (Not (frmMain.Height <= 6930 + WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2)) Then '창 크기 초기화
                 Me.Height = 8985 + WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2
             
                 IBSSubclass_WindowProc = 1&
                 Exit Function
             End If
-'        Case WM_DWMCOMPOSITIONCHANGED
+        Case WM_DWMCOMPOSITIONCHANGED
+            If GetSetting("DownloadBooster", "Options", "UseAeroWindow", 0) <> 0 Then
+                If IsDWMEnabled() Then
+                    EnableGlassWindow
+                Else
+                    DisableGlassWindow
+                End If
+            End If
+'        Case WM_DWMCOLORIZATIONCOLORCHANGED
+'            If GetSetting("DownloadBooster", "Options", "UseAeroWindow", 0) <> 0 Then
+'                clrKey = RGB(((wParam And &HFF0000) \ &H10000), ((wParam And &HFF00&) \ &H100&), (wParam And &HFF))
+'                SetLayeredWindowAttributes Me.hWnd, clrKey, 0&, LWA_COLORKEY
+'                SetFormBackgroundColor Me, OverrideBackColor:=clrKey
+'            End If
         Case WM_SETTINGCHANGE
             Select Case GetStrFromPtr(lParam)
                 Case "WindowMetrics"
                     UpdateBorderWidth
                     
                     FormWidth = (MAIN_FORM_WIDTH + WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2) / 15
-                    FormMinHeight = (8220 + WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2) / 15
+                    FormMinHeight = (8220 + WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2 + 45) / 15
                     
                     Me.Width = FormWidth * 15
                     Form_Resize
@@ -2341,13 +2387,15 @@ Sub cmdBatch_Click()
         FormMaxHeight = (Screen.Height + 1200) / 15
         'sbStatusBar.AllowSizeGrip = True
         
-        Dim formHeight As Integer
-        formHeight = GetSetting("DownloadBooster", "UserData", "FormHeight", 8985)
-        If formHeight < 8220 Then
+        Dim FormHeight As Integer
+        FormHeight = GetSetting("DownloadBooster", "UserData", "FormHeight", 8985)
+        If FormHeight < 8220 Then
             Me.Height = 8985 + WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2
         Else
-            Me.Height = formHeight + WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2
+            Me.Height = FormHeight + WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2
         End If
+        
+        BatchDownloadListShown = True
     Else
         SaveSetting "DownloadBooster", "UserData", "FormHeight", Me.Height - WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2
         FormWidth = (MAIN_FORM_WIDTH + WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2) / 15
@@ -2358,6 +2406,8 @@ Sub cmdBatch_Click()
         cmdBatch.ImageList = imgDropdown
         lvBatchFiles.Visible = 0
         cmdAddToQueue.Visible = 0
+        
+        BatchDownloadListShown = False
     End If
     SetBackgroundPosition
 End Sub
@@ -2924,7 +2974,7 @@ Sub LoadLiveBadukSkin()
         cbWhenExist.Width = 1305
         
         Dim ShowBorder As Boolean
-        ShowBorder = (GetSetting("DownloadBooster", "Options", "LiveBadukMemoSkinEnableBorder", 1) <> 0) And (DPI = 96)
+        ShowBorder = (GetSetting("DownloadBooster", "Options", "LiveBadukMemoSkinEnableBorder", 1) <> 0) And (DPI = 96) And (GlassEnabled = False)
         imgBorderTopLeft.Visible = ShowBorder
         imgBorderTopRight.Visible = ShowBorder
         imgBorderBottomLeft.Visible = ShowBorder
@@ -3011,7 +3061,11 @@ Sub LoadLiveBadukSkin()
         fProgress.Visible = False
     End If
     
-    SetFormBackgroundColor Me
+    If GlassEnabled Then
+        SetFormBackgroundColor Me, OverrideBackColor:=clrKey
+    Else
+        SetFormBackgroundColor Me
+    End If
     If LBEnabled Then
         Dim ContentTextColor As Long
         ContentTextColor = CLng(GetSetting("DownloadBooster", "Options", "LiveBadukMemoSkinContentTextColor", 0))
@@ -3146,6 +3200,9 @@ Private Sub Form_Load()
     pbProgressContainer.Height = 360# * CDbl(MAX_THREAD_COUNT)
     fDownloadInfo.Top = fThreadInfo.Top
     
+    GlassEnabled = False
+    If IsDWMEnabled() And GetSetting("DownloadBooster", "Options", "UseAeroWindow", 0) <> 0 Then EnableGlassWindow
+    
     LoadLiveBadukSkin
     
     '창 너비 구성
@@ -3198,11 +3255,10 @@ Private Sub Form_Load()
     '조절 메뉴 항목 추가
     Dim hSysMenu As Long
     Dim MenuCount As Long
-    hSysMenu = GetSystemMenu(Me.hWnd, 0)
+    hSysMenu = GetSystemMenu(Me.hWnd, 0&)
     MenuCount = GetMenuItemCount(hSysMenu)
     Dim MII As MENUITEMINFO
-    
-    MII.cbSize = Len(MII)
+    MII.cbSize = MiiSize
     
     '항상 위에 표시
     With MII
@@ -3217,9 +3273,9 @@ Private Sub Form_Load()
 
     '높이 리셋
     With MII
-        .fMask = MIIM_STATE Or MIIM_ID Or MIIM_TYPE
-        .fType = MFT_STRING
-        .fState = MFS_ENABLED
+        '.fMask = MIIM_STATE Or MIIM_ID Or MIIM_TYPE
+        '.fType = MFT_STRING
+        '.fState = MFS_ENABLED
         .wID = 1003
         .dwTypeData = t("창 크기 초기화(&E)", "R&eset window size")
         .cch = Len(.dwTypeData)
@@ -3228,8 +3284,7 @@ Private Sub Form_Load()
 
     '구분선
     With MII
-        .cbSize = Len(MII)
-        .fMask = MIIM_ID Or MIIM_TYPE
+        '.fMask = MIIM_ID Or MIIM_TYPE
         .fType = MFT_SEPARATOR
         .wID = 2000
     End With
@@ -3242,6 +3297,7 @@ Private Sub Form_Load()
         FormWidth = (MAIN_FORM_WIDTH + WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2) / 15
         FormMinHeight = (6930 + WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2) / 15
         FormMaxHeight = (6930 + WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2) / 15
+        BatchDownloadListShown = False
     End If
     
     '사용자 설정 불러오기
@@ -3348,7 +3404,7 @@ Private Sub Form_Load()
     lbOptionsHeader3D.X1 = Label11.Width + 75
     
     '창 화면배색 설정 불러오기
-    If GetSetting("DownloadBooster", "Options", "DisableDWMWindow", DefaultDisableDWMWindow) = 1 Then DisableDWMWindow Me.hWnd
+    If GlassEnabled = False And GetSetting("DownloadBooster", "Options", "DisableDWMWindow", DefaultDisableDWMWindow) = 1 Then DisableDWMWindow Me.hWnd
     SetPattern
     SetBackgroundImage
     SetBackgroundPosition
@@ -3367,7 +3423,8 @@ Private Sub Form_Load()
     AttachMessage Me, Me.hWnd, WM_GETMINMAXINFO
     AttachMessage Me, Me.hWnd, WM_INITMENU
     AttachMessage Me, Me.hWnd, WM_SYSCOMMAND
-    'AttachMessage Me, Me.hWnd, WM_DWMCOMPOSITIONCHANGED
+    AttachMessage Me, Me.hWnd, WM_DWMCOMPOSITIONCHANGED
+    'AttachMessage Me, Me.hWnd, WM_DWMCOLORIZATIONCOLORCHANGED
     AttachMessage Me, Me.hWnd, WM_SETTINGCHANGE
     AttachMessage Me, Me.hWnd, WM_THEMECHANGED
     AttachMessage Me, Me.hWnd, WM_CTLCOLORSCROLLBAR
@@ -3375,19 +3432,20 @@ Private Sub Form_Load()
     '스크롤 표시 유무
     vsProgressScroll.Visible = (trThreadCount.Value > 10 And optTabThreads2.Value)
     
-    Dim Lft&, Top&
     '창 위치 불러오기
-    If GetSetting("DownloadBooster", "Options", "StartupPosition", 0) = 1 Then
-        Me.Top = Screen.Height \ 2 - Me.Height \ 2
-        Me.Left = Screen.Width \ 2 - Me.Width \ 2
-    Else
-        Top = GetSetting("DownloadBooster", "UserData", "FormTop", 0)
-        Lft = GetSetting("DownloadBooster", "UserData", "FormLeft", 0)
-        If Top <> 0 Or Lft <> 0 Then
-            Me.Top = Top
-            Me.Left = Lft
-        End If
-    End If
+    Select Case GetSetting("DownloadBooster", "Options", "StartupPosition", "0")
+        Case "1"
+            Me.Top = Screen.Height \ 2 - Me.Height \ 2
+            Me.Left = Screen.Width \ 2 - Me.Width \ 2
+        Case "0"
+            Dim FormLeft&, FormTop&
+            FormTop = GetSetting("DownloadBooster", "UserData", "FormTop", Me.Top)
+            FormLeft = GetSetting("DownloadBooster", "UserData", "FormLeft", Me.Left)
+            If (FormTop <> Me.Top Or FormLeft <> Me.Left) And FormTop > -(CaptionHeight + 5) * Screen.TwipsPerPixelY And FormTop < Screen.Height - CaptionHeight * 2 * Screen.TwipsPerPixelY And FormLeft > -Me.Width + CaptionHeight * Screen.TwipsPerPixelX And FormLeft < Screen.Width - CaptionHeight * Screen.TwipsPerPixelX Then
+                Me.Top = FormTop
+                Me.Left = FormLeft
+            End If
+    End Select
     
     pbTotalProgress.ShowInTaskBar = (GetSetting("DownloadBooster", "Options", "ShowProgressInTaskbar", 1) <> 0)
     
@@ -3807,7 +3865,7 @@ Private Sub Form_Unload(Cancel As Integer)
     If GetSetting("DownloadBooster", "Options", "RememberURL", 0) <> 0 Then SaveSetting "DownloadBooster", "UserData", "FileURL", Trim$(txtURL.Text)
     SaveSetting "DownloadBooster", "UserData", "FormTop", Me.Top
     SaveSetting "DownloadBooster", "UserData", "FormLeft", Me.Left
-    If Me.Height >= 8220 Then SaveSetting "DownloadBooster", "UserData", "FormHeight", Me.Height - WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2
+    If BatchDownloadListShown Then SaveSetting "DownloadBooster", "UserData", "FormHeight", Me.Height - WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2
     SaveSetting "DownloadBooster", "UserData", "LastTab", (CInt(optTabThreads2.Value) * -1) + 1
     
     Unload frmBatchAdd
