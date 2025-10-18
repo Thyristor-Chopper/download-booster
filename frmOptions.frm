@@ -629,7 +629,6 @@ Begin VB.Form frmOptions
             Height          =   255
             Left            =   1080
             TabIndex        =   26
-            Tag             =   "nocolorchange"
             Top             =   1515
             Width           =   975
          End
