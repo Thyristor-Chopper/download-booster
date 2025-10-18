@@ -328,6 +328,7 @@ Private Type TIME_ZONE_INFORMATION
     DaylightBias As Long
 End Type
 
+'Public Const WM_ERASEBKGND  As Long = &H14&
 Public Const WM_NOTIFY As Long = &H4E&
 Public Const WM_MOVE As Long = &H3&
 'Public Const WM_MOVING As Long = &H216&

@@ -2818,8 +2818,8 @@ Sub SetBackgroundImage()
 End Sub
 
 Sub SetPattern()
-    pgPattern.FillStyle = CInt(GetSetting("DownloadBooster", "Options", "FormFillStyle", 0)) + 1
-    pgPattern.FillColor = CLng(GetSetting("DownloadBooster", "Options", "FormFillColor", 0))
+    pgPattern.FillStyle = CInt(GetSetting("DownloadBooster", "Options", "FormFillStyle", 4)) + 1
+    pgPattern.FillColor = CLng(GetSetting("DownloadBooster", "Options", "FormFillColor", 14544344))
 End Sub
 
 Sub SetFrameTexture()
@@ -3804,7 +3804,6 @@ Private Sub Form_Unload(Cancel As Integer)
     
     SaveSetting "DownloadBooster", "UserData", "SavePath", Trim$(txtFileName.Text)
     SaveSetting "DownloadBooster", "UserData", "BatchExpanded", CInt(Me.Height > 6930 + WindowSkinBorderSize((CurrentWindowSkin - 1) * 3 + 2) * 15 * 2) * -1
-    SaveSetting "DownloadBooster", "Options", "WhenFileExists", cbWhenExist.ListIndex
     If GetSetting("DownloadBooster", "Options", "RememberURL", 0) <> 0 Then SaveSetting "DownloadBooster", "UserData", "FileURL", Trim$(txtURL.Text)
     SaveSetting "DownloadBooster", "UserData", "FormTop", Me.Top
     SaveSetting "DownloadBooster", "UserData", "FormLeft", Me.Left

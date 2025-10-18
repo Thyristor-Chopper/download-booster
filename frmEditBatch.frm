@@ -45,7 +45,7 @@ Begin VB.Form frmEditBatch
       Caption         =   "취소"
    End
    Begin VB.Frame fInfo 
-      Caption         =   " 파일 다운로드 정보 "
+      Caption         =   "파일 다운로드 정보"
       Height          =   2415
       Left            =   120
       TabIndex        =   0
@@ -247,7 +247,7 @@ Private Sub Form_Load()
     tr cmdOK, "OK"
     tr cmdCancel, "Cancel"
     tr cmdBrowse, "&Browse..."
-    tr fInfo, " File download information "
+    tr fInfo, "File download information"
     tr Label1, "File &address:"
     tr Label2, "&Save to:"
     tr Label3, "&Download options:"

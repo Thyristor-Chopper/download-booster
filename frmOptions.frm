@@ -1649,9 +1649,9 @@ Private Sub LoadTheme(Optional ByVal ThemeName As String = "")
     txtSampleClassic.Visible = (DisableVisualStyle <> 0)
     pbSampleClassic.Visible = (DisableVisualStyle <> 0)
     
-    lvPatterns.ListIndex = CInt(GetSetting("DownloadBooster", Section, "FormFillStyle", 0))
+    lvPatterns.ListIndex = CInt(GetSetting("DownloadBooster", Section, "FormFillStyle", 4))
     
-    pgPatternColor.BackColor = CLng(GetSetting("DownloadBooster", Section, "FormFillColor", 0))
+    pgPatternColor.BackColor = CLng(GetSetting("DownloadBooster", Section, "FormFillColor", 14544344))
     pgPatternPreview.FillColor = pgPatternColor.BackColor
     pgPatternPreview.FillStyle = lvPatterns.ListIndex + 1
     
@@ -2460,9 +2460,11 @@ nopicture:
     If lvBackgrounds.ListIndex = 0 Then
         cbImagePosition.Enabled = False
         chkCenter.Enabled = False
+        Label2.Enabled = False
     Else
         cbImagePosition.Enabled = True
         chkCenter.Enabled = (cbImagePosition.ListIndex >= 1 And cbImagePosition.ListIndex <= 3)
+        Label2.Enabled = True
     End If
     If Loaded Then
         cmdApply.Enabled = -1
@@ -2962,13 +2964,6 @@ NextItem:
         End If
     End If
     lvBackgrounds.ListIndex = SelectedIndex
-    If SelectedIndex = 0 Then
-        cbImagePosition.Enabled = False
-        chkCenter.Enabled = False
-    Else
-        cbImagePosition.Enabled = True
-        chkCenter.Enabled = (cbImagePosition.ListIndex >= 1 And cbImagePosition.ListIndex <= 3)
-    End If
 End Sub
 
 Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
