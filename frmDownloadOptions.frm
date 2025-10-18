@@ -257,6 +257,7 @@ Begin VB.Form frmDownloadOptions
       _ExtentX        =   4233
       _ExtentY        =   688
       TabMinWidth     =   48
+      DoubleBuffer    =   0   'False
       InitTabs        =   "frmDownloadOptions.frx":044E
    End
    Begin prjDownloadBooster.CommandButtonW CancelButton 
