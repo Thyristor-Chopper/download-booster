@@ -985,7 +985,7 @@ GetKeyError:      ' 오류가 발생하면 지웁니다...
 End Function
 
 'https://www.vbforums.com/showthread.php?796771-RESOLVED-Help!-cannot-delete-registry-x64-subkeys&p=4894805
-Function GetSubkeys(ByVal KeyRoot As Long, KeyName As String, Output() As String) As Boolean
+Function GetSubkeys(ByVal KeyRoot As Long, KeyName As String, output() As String) As Boolean
     Dim KeysRev() As String, Keys() As String
     Dim hKey&, i&, j&, nBufferLen&, sBuffer$
 
@@ -1007,7 +1007,7 @@ Function GetSubkeys(ByVal KeyRoot As Long, KeyName As String, Output() As String
         For i = j To 0& Step -1&
             Keys(j - i) = KeysRev(i)
         Next i
-        Output = Keys
+        output = Keys
         RegCloseKey hKey
         GetSubkeys = True
         Exit Function
@@ -2586,3 +2586,10 @@ Function GetDCFromPicture(pic As StdPicture) As Long
     GetDCFromPicture = hDCMem
 End Function
 #End If
+
+Sub ExpandImageList(imlImageList As ImageList)
+    Dim imlPicture As IPictureDisp: Set imlPicture = imlImageList.ListImages(1).ExtractIcon()
+    imlImageList.ListImages.Add 1, Picture:=imlPicture
+    imlImageList.ListImages.Add 1, Picture:=imlPicture
+    imlImageList.ListImages.Add 5, Picture:=imlPicture
+End Sub

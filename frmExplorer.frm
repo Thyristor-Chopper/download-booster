@@ -1714,7 +1714,7 @@ Private Sub OKButton_Click()
         Select Case Tags.BrowseTargetForm
             Case 3
                 frmOptions.ChangedBackgroundPath = PicturePath
-                frmOptions.LoadBackgroundList
+                frmOptions.LoadBackgroundList BackgroundImageEnabled:=True
             Case 5
                 SaveSetting "DownloadBooster", "Options", "LiveBadukMemoSkinFrameTexture", PicturePath
                 frmLiveBadukSkinProperties.optTexture.Value = True

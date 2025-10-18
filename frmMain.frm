@@ -373,7 +373,7 @@ Begin VB.Form frmMain
       Width           =   17295
       _ExtentX        =   30506
       _ExtentY        =   582
-      InitPanels      =   "frmMain.frx":25E7
+      InitPanels      =   "frmMain.frx":296F
    End
    Begin prjDownloadBooster.ListView lvBatchFiles 
       Height          =   870
@@ -439,7 +439,7 @@ Begin VB.Form frmMain
       ImageWidth      =   13
       ImageHeight     =   5
       MaskColor       =   16711935
-      InitListImages  =   "frmMain.frx":28EB
+      InitListImages  =   "frmMain.frx":2C73
    End
    Begin prjDownloadBooster.CommandButtonW cmdOpenDropdown 
       Height          =   375
@@ -462,7 +462,7 @@ Begin VB.Form frmMain
       ImageWidth      =   13
       ImageHeight     =   5
       MaskColor       =   16711935
-      InitListImages  =   "frmMain.frx":2A9B
+      InitListImages  =   "frmMain.frx":2E23
    End
    Begin prjDownloadBooster.CommandButtonW cmdDeleteDropdown 
       Height          =   375
@@ -485,7 +485,7 @@ Begin VB.Form frmMain
       ImageWidth      =   16
       ImageHeight     =   16
       MaskColor       =   16711935
-      InitListImages  =   "frmMain.frx":2D9B
+      InitListImages  =   "frmMain.frx":3123
    End
    Begin prjDownloadBooster.CommandButtonW cmdAddToQueue 
       Height          =   330
@@ -521,7 +521,7 @@ Begin VB.Form frmMain
       ImageWidth      =   16
       ImageHeight     =   16
       MaskColor       =   16711935
-      InitListImages  =   "frmMain.frx":3183
+      InitListImages  =   "frmMain.frx":350B
    End
    Begin prjDownloadBooster.ImageList imgPlay 
       Left            =   9840
@@ -531,7 +531,7 @@ Begin VB.Form frmMain
       ImageWidth      =   16
       ImageHeight     =   16
       MaskColor       =   16711935
-      InitListImages  =   "frmMain.frx":356B
+      InitListImages  =   "frmMain.frx":38F3
    End
    Begin prjDownloadBooster.ImageList imgDownload 
       Left            =   9840
@@ -541,7 +541,7 @@ Begin VB.Form frmMain
       ImageWidth      =   16
       ImageHeight     =   16
       MaskColor       =   16711935
-      InitListImages  =   "frmMain.frx":3CDB
+      InitListImages  =   "frmMain.frx":4063
    End
    Begin prjDownloadBooster.ImageList imgMinus 
       Left            =   9840
@@ -551,7 +551,7 @@ Begin VB.Form frmMain
       ImageWidth      =   16
       ImageHeight     =   16
       MaskColor       =   16711935
-      InitListImages  =   "frmMain.frx":40C3
+      InitListImages  =   "frmMain.frx":444B
    End
    Begin prjDownloadBooster.ImageList imgOpenFile 
       Left            =   9840
@@ -561,7 +561,7 @@ Begin VB.Form frmMain
       ImageWidth      =   16
       ImageHeight     =   16
       MaskColor       =   16711935
-      InitListImages  =   "frmMain.frx":4833
+      InitListImages  =   "frmMain.frx":4BBB
    End
    Begin prjDownloadBooster.ImageList imgOpenFolder 
       Left            =   9840
@@ -571,7 +571,7 @@ Begin VB.Form frmMain
       ImageWidth      =   16
       ImageHeight     =   16
       MaskColor       =   16711935
-      InitListImages  =   "frmMain.frx":4FA3
+      InitListImages  =   "frmMain.frx":532B
    End
    Begin prjDownloadBooster.FrameW fDownloadInfo 
       Height          =   3255
@@ -866,7 +866,7 @@ Begin VB.Form frmMain
       Width           =   1575
       _ExtentX        =   2778
       _ExtentY        =   661
-      ImageList       =   "imgPlusYellow"
+      ImageList       =   "imgPlus"
       Caption         =   " 추가(&R)..."
       Transparent     =   -1  'True
    End
@@ -1084,6 +1084,16 @@ Begin VB.Form frmMain
       ImageListAlignment=   4
       Transparent     =   -1  'True
    End
+   Begin prjDownloadBooster.ImageList imgPlus 
+      Left            =   9240
+      Top             =   120
+      _ExtentX        =   1005
+      _ExtentY        =   1005
+      ImageWidth      =   16
+      ImageHeight     =   16
+      MaskColor       =   16711935
+      InitListImages  =   "frmMain.frx":5A9B
+   End
    Begin VB.Image imgLBContentBackground 
       Height          =   4215
       Left            =   270
@@ -1095,7 +1105,7 @@ Begin VB.Form frmMain
    Begin VB.Image imgBorderBottomRight 
       Height          =   135
       Left            =   11040
-      Picture         =   "frmMain.frx":538B
+      Picture         =   "frmMain.frx":5E83
       Top             =   600
       Visible         =   0   'False
       Width           =   135
@@ -1103,7 +1113,7 @@ Begin VB.Form frmMain
    Begin VB.Image imgBorderBottomLeft 
       Height          =   135
       Left            =   10680
-      Picture         =   "frmMain.frx":53D9
+      Picture         =   "frmMain.frx":5ED1
       Top             =   600
       Visible         =   0   'False
       Width           =   135
@@ -1111,7 +1121,7 @@ Begin VB.Form frmMain
    Begin VB.Image imgBorderTopRight 
       Height          =   135
       Left            =   11040
-      Picture         =   "frmMain.frx":5425
+      Picture         =   "frmMain.frx":5F1D
       Top             =   240
       Visible         =   0   'False
       Width           =   135
@@ -1119,7 +1129,7 @@ Begin VB.Form frmMain
    Begin VB.Image imgBorderTopLeft 
       Height          =   135
       Left            =   10680
-      Picture         =   "frmMain.frx":5471
+      Picture         =   "frmMain.frx":5F69
       Top             =   240
       Visible         =   0   'False
       Width           =   135
@@ -3346,30 +3356,13 @@ Private Sub Form_Load()
     SetFont Me
     
     '이미지 리스트 로드
-    Dim imlPicture As IPictureDisp
-    
-    Set imlPicture = imgDropdown.ListImages(1).ExtractIcon()
-    imgDropdown.ListImages.Add 1, Picture:=imlPicture
-    imgDropdown.ListImages.Add 1, Picture:=imlPicture
-    imgDropdown.ListImages.Add 5, Picture:=imlPicture
-    
-    Set imlPicture = imgPlay.ListImages(1).ExtractIcon()
-    imgPlay.ListImages.Add 1, Picture:=imlPicture
-    imgPlay.ListImages.Add 1, Picture:=imlPicture
-    imgPlay.ListImages.Add 5, Picture:=imlPicture
-    
-    Set imlPicture = imgMinus.ListImages(1).ExtractIcon()
-    imgMinus.ListImages.Add 1, Picture:=imlPicture
-    imgMinus.ListImages.Add 1, Picture:=imlPicture
-    imgMinus.ListImages.Add 5, Picture:=imlPicture
-    
-    Set imlPicture = imgOpenFile.ListImages(1).ExtractIcon()
-    imgOpenFile.ListImages.Add 1, Picture:=imlPicture
-    imgOpenFile.ListImages.Add 1, Picture:=imlPicture
-    imgOpenFile.ListImages.Add 5, Picture:=imlPicture
-    
-    Set imlPicture = Nothing
-    
+    ExpandImageList imgDropdown
+    ExpandImageList imgPlay
+    ExpandImageList imgMinus
+    ExpandImageList imgOpenFile
+    ExpandImageList imgOpenFolder
+    ExpandImageList imgErase
+
     '서브클래스
     AttachMessage Me, Me.hWnd, WM_GETMINMAXINFO
     AttachMessage Me, Me.hWnd, WM_INITMENU
