@@ -481,6 +481,14 @@ Begin VB.Form frmOptions
          TabIndex        =   19
          Top             =   2160
          Width           =   6780
+         Begin VB.CheckBox chkAeroWindow 
+            Caption         =   "유리 창 효과 사용(&G)"
+            Height          =   255
+            Left            =   3720
+            TabIndex        =   21
+            Top             =   240
+            Width           =   2535
+         End
          Begin VB.ComboBox cbFont 
             Height          =   300
             Left            =   2640
@@ -543,14 +551,6 @@ Begin VB.Form frmOptions
             TabIndex        =   22
             Top             =   480
             Width           =   4095
-         End
-         Begin VB.CheckBox chkAeroWindow 
-            Caption         =   "유리 창 효과 사용(&G)"
-            Height          =   255
-            Left            =   3480
-            TabIndex        =   21
-            Top             =   240
-            Width           =   2055
          End
          Begin VB.CheckBox chkAlwaysOnTop 
             Caption         =   "항상 위에 표시(&W)"
@@ -643,7 +643,7 @@ Begin VB.Form frmOptions
          Begin VB.CheckBox chkUseServerModified 
             Caption         =   "서버의 수정한 날짜 반영(&D)"
             Height          =   255
-            Left            =   3480
+            Left            =   3720
             TabIndex        =   12
             Top             =   720
             Width           =   2895
@@ -706,7 +706,7 @@ Begin VB.Form frmOptions
          Begin VB.CheckBox chkAlwaysResume 
             Caption         =   "항상 이어받기(&A)"
             Height          =   255
-            Left            =   3480
+            Left            =   3720
             TabIndex        =   10
             Top             =   480
             Width           =   2295
@@ -714,7 +714,7 @@ Begin VB.Form frmOptions
          Begin VB.CheckBox chkOpenDirWhenComplete 
             Caption         =   "완료 후 폴더 열기(&P)"
             Height          =   255
-            Left            =   3480
+            Left            =   3720
             TabIndex        =   8
             Top             =   240
             Width           =   2655
@@ -980,7 +980,7 @@ Begin VB.Form frmOptions
          Height          =   345
          Left            =   120
          TabIndex        =   45
-         Top             =   2205
+         Top             =   2235
          Width           =   6795
          Begin prjDownloadBooster.CommandButtonW cmdDeleteTheme 
             Height          =   300
@@ -1478,7 +1478,7 @@ Private Sub cbFrameSkin_Click()
 End Sub
 
 Private Sub cbImagePosition_Click()
-    chkCenter.Enabled = (cbImagePosition.ListIndex >= 1 And cbImagePosition.ListIndex <= 3 And chkAeroWindow = 0)
+    chkCenter.Enabled = (cbImagePosition.ListIndex >= 1 And cbImagePosition.ListIndex <= 3 And chkAeroWindow = 0 And lvBackgrounds.ListIndex <> 0)
     If Loaded Then
         cmdApply.Enabled = -1
         ImageChanged = True

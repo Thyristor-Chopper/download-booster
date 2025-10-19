@@ -89,13 +89,13 @@ Begin VB.Form frmDownloadOptions
          Caption         =   "Ãß°¡(&A)"
       End
       Begin prjDownloadBooster.ListView lvHeaders 
-         Height          =   3015
+         Height          =   2895
          Left            =   840
          TabIndex        =   17
-         Top             =   600
+         Top             =   720
          Width           =   5475
          _ExtentX        =   9657
-         _ExtentY        =   5318
+         _ExtentY        =   5106
          VisualTheme     =   1
          View            =   3
          FullRowSelect   =   -1  'True

@@ -13,6 +13,7 @@ Begin VB.UserControl TygemButton
       Italic          =   0   'False
       Strikethrough   =   0   'False
    EndProperty
+   HasDC           =   0   'False
    KeyPreview      =   -1  'True
    ScaleHeight     =   1305
    ScaleWidth      =   1800
@@ -345,7 +346,7 @@ Private Function IsHovering() As Boolean
     Static lpPos As POINTAPI
     Static lhWnd As Long
     GetCursorPos lpPos
-    lhWnd = WindowFromPoint(lpPos.x, lpPos.y)
+    lhWnd = WindowFromPoint(lpPos.X, lpPos.Y)
     IsHovering = (lhWnd = CommandButtonControlHandle)
 End Function
 
@@ -353,14 +354,12 @@ Private Sub tmrMouse_Timer()
     Static lpPos As POINTAPI
     Static lhWnd As Long
     GetCursorPos lpPos
-    lhWnd = WindowFromPoint(lpPos.x, lpPos.y)
+    lhWnd = WindowFromPoint(lpPos.X, lpPos.Y)
     If (Not IsHovering()) And bHovering Then MouseOut
 End Sub
 
 Private Sub UserControl_GotFocus()
     pgFocusRect.Visible = True
-    DrawNormalState = Focused
-    If Not IsPressed Then DrawSkin DrawNormalState
 End Sub
 
 Private Sub UserControl_Initialize()
@@ -399,14 +398,14 @@ Sub ShowAsUnpressed()
     DrawSkin DrawNormalState
 End Sub
 
-Private Sub imgOverlay_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub imgOverlay_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
     If (Not m_Enabled) Or Button <> 1 Then Exit Sub
     bMouseDown = True
     ShowAsPressed
     'RaiseEvent MouseDown(Button, Shift, X, Y)
 End Sub
  
-Private Sub imgOverlay_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub imgOverlay_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
     If Not m_Enabled Then Exit Sub
     tmrMouse.Enabled = -1
     If Not bHovering Then
@@ -417,7 +416,7 @@ Private Sub imgOverlay_MouseMove(Button As Integer, Shift As Integer, x As Singl
     'RaiseEvent MouseMove(Button, Shift, X, Y)
 End Sub
  
-Private Sub imgOverlay_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub imgOverlay_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     If (Not m_Enabled) Or Button <> 1 Then Exit Sub
     bMouseDown = False
     ShowAsUnpressed
@@ -455,12 +454,6 @@ End Sub
 
 Private Sub UserControl_LostFocus()
     pgFocusRect.Visible = False
-    If m_Enabled Then
-        DrawNormalState = Normal
-    Else
-        DrawNormalState = Disabled
-    End If
-    If Not IsPressed Then DrawSkin DrawNormalState
 End Sub
 
 Private Sub RefreshSkin(Optional Redraw As Boolean = False)

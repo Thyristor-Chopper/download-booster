@@ -681,18 +681,22 @@ Set PropDownPicture = .ReadProperty("DownPicture", Nothing)
 PropUseMaskColor = .ReadProperty("UseMaskColor", False)
 PropMaskColor = .ReadProperty("MaskColor", &HC0C0C0)
 PropDrawMode = .ReadProperty("DrawMode", CmdDrawModeNormal)
-PropIsTygemButton = .ReadProperty("IsTygemButton", False)
+PropIsTygemButton = False '.ReadProperty("IsTygemButton", False)
 PropRoundButton = .ReadProperty("RoundButton", False)
 tygButton.Visible = PropIsTygemButton
 tygButton.Enabled = Me.Enabled
 tygButton.Caption = PropCaption
+tygButton.Default = Ambient.DisplayAsDefault
 SetRgn
 If Not PropFont Is Nothing Then
     tygButton.FontName = PropFont.Name
     tygButton.FontSize = PropFont.Size
 End If
-If CommandButtonHandle <> NULL_PTR Then
-    MoveWindow CommandButtonHandle, -((UserControl.ScaleWidth + 5) * PropIsTygemButton), -((UserControl.ScaleHeight + 5) * PropIsTygemButton), UserControl.ScaleWidth, UserControl.ScaleHeight, -(Not PropTransparent)
+'If CommandButtonHandle <> NULL_PTR Then
+'    MoveWindow CommandButtonHandle, -((UserControl.ScaleWidth + 5) * PropIsTygemButton), -((UserControl.ScaleHeight + 5) * PropIsTygemButton), UserControl.ScaleWidth, UserControl.ScaleHeight, -(Not PropTransparent)
+'End If
+If .ReadProperty("Default", False) = True Then
+    tygButton.Default = True
 End If
 End With
 Call CreateCommandButton
@@ -736,7 +740,7 @@ With PropBag
 .WriteProperty "UseMaskColor", PropUseMaskColor, False
 .WriteProperty "MaskColor", PropMaskColor, &HC0C0C0
 .WriteProperty "DrawMode", PropDrawMode, CmdDrawModeNormal
-.WriteProperty "IsTygemButton", PropIsTygemButton, False
+'.WriteProperty "IsTygemButton", PropIsTygemButton, False
 .WriteProperty "RoundButton", PropRoundButton, False
 End With
 End Sub
@@ -789,6 +793,7 @@ Private Sub UserControl_AmbientChanged(PropertyName As String)
 Select Case PropertyName
     Case "DisplayAsDefault"
         CommandButtonDisplayAsDefault = Ambient.DisplayAsDefault
+        tygButton.Default = Ambient.DisplayAsDefault
         If CommandButtonHandle <> NULL_PTR Then
             Dim dwStyle As Long
             dwStyle = GetWindowLong(CommandButtonHandle, GWL_STYLE)
@@ -904,7 +909,7 @@ With UserControl
 If DPICorrectionFactor() <> 1 Then Call SyncObjectRectsToContainer(Me)
 If CommandButtonHandle <> NULL_PTR Then
     If PropTransparent = True Then
-        MoveWindow CommandButtonHandle, -((.ScaleWidth + 5) * PropIsTygemButton), -((.ScaleHeight + 5) * PropIsTygemButton), .ScaleWidth, .ScaleHeight, 0
+        'MoveWindow CommandButtonHandle, -((.ScaleWidth + 5) * PropIsTygemButton), -((.ScaleHeight + 5) * PropIsTygemButton), .ScaleWidth, .ScaleHeight, 0&
         If PropIsTygemButton Then GoTo exitif
         If CommandButtonTransparentBrush <> NULL_PTR Then
             DeleteObject CommandButtonTransparentBrush
@@ -913,7 +918,7 @@ If CommandButtonHandle <> NULL_PTR Then
         RedrawWindow CommandButtonHandle, NULL_PTR, NULL_PTR, RDW_UPDATENOW Or RDW_INVALIDATE Or RDW_ERASE
 exitif:
     Else
-        MoveWindow CommandButtonHandle, -((.ScaleWidth + 5) * PropIsTygemButton), -((.ScaleHeight + 5) * PropIsTygemButton), .ScaleWidth, .ScaleHeight, 1
+        'MoveWindow CommandButtonHandle, -((.ScaleWidth + 5) * PropIsTygemButton), -((.ScaleHeight + 5) * PropIsTygemButton), .ScaleWidth, .ScaleHeight, 1&
     End If
 End If
 End With
@@ -962,6 +967,7 @@ End Property
 
 Public Property Let Default(ByVal Value As Boolean)
 Extender.Default = Value
+tygButton.Default = Ambient.DisplayAsDefault
 End Property
 
 Public Property Get Cancel() As Boolean
@@ -1270,6 +1276,7 @@ End Property
 
 Public Property Let IsTygemButton(ByVal Value As Boolean)
 tygButton.Visible = Value
+If Value Then tygButton.Default = Ambient.DisplayAsDefault
 PropIsTygemButton = Value
 If CommandButtonHandle <> NULL_PTR Then
     MoveWindow CommandButtonHandle, -((UserControl.ScaleWidth + 5) * PropIsTygemButton), -((UserControl.ScaleHeight + 5) * PropIsTygemButton), UserControl.ScaleWidth, UserControl.ScaleHeight, -(Not PropTransparent)
@@ -1929,15 +1936,15 @@ Set Me.DownPicture = Value
 End Property
 
 Public Property Set DownPicture(ByVal Value As IPictureDisp)
-If Value Is Nothing Then
-    Set PropDownPicture = Nothing
-Else
-    Set UserControl.Picture = Value
-    Set PropDownPicture = UserControl.Picture
-    Set UserControl.Picture = Nothing
-End If
-CommandButtonPictureRenderFlag = 0
-Me.Refresh
+'If Value Is Nothing Then
+'    Set PropDownPicture = Nothing
+'Else
+'    Set UserControl.Picture = Value
+'    Set PropDownPicture = UserControl.Picture
+'    Set UserControl.Picture = Nothing
+'End If
+'CommandButtonPictureRenderFlag = 0
+'Me.Refresh
 UserControl.PropertyChanged "DownPicture"
 End Property
 
@@ -2071,27 +2078,27 @@ If CommandButtonHandle = NULL_PTR Then Exit Sub
 Call ComCtlsRemoveSubclass(CommandButtonHandle)
 Call ComCtlsRemoveSubclass(UserControl.hWnd)
 'ShowWindow CommandButtonHandle, SW_HIDE
-SetParent CommandButtonHandle, NULL_PTR
+'SetParent CommandButtonHandle, NULL_PTR
 DestroyWindow CommandButtonHandle
-CommandButtonHandle = NULL_PTR
+'CommandButtonHandle = NULL_PTR
 If CommandButtonFontHandle <> NULL_PTR Then
     DeleteObject CommandButtonFontHandle
-    CommandButtonFontHandle = NULL_PTR
+    'CommandButtonFontHandle = NULL_PTR
 End If
 If CommandButtonAcceleratorHandle <> NULL_PTR Then
     DestroyAcceleratorTable CommandButtonAcceleratorHandle
-    CommandButtonAcceleratorHandle = NULL_PTR
+    'CommandButtonAcceleratorHandle = NULL_PTR
 End If
 If CommandButtonTransparentBrush <> NULL_PTR Then
     DeleteObject CommandButtonTransparentBrush
-    CommandButtonTransparentBrush = NULL_PTR
+    'CommandButtonTransparentBrush = NULL_PTR
 End If
 CommandButtonImageListButtonHandle = NULL_PTR
 If CommandButtonImageListGlyphHandle <> NULL_PTR Then
     ImageList_Destroy CommandButtonImageListGlyphHandle
-    CommandButtonImageListGlyphHandle = NULL_PTR
+    'CommandButtonImageListGlyphHandle = NULL_PTR
 End If
-CommandButtonDefaultImageListGlyphHandle = NULL_PTR
+'CommandButtonDefaultImageListGlyphHandle = NULL_PTR
 End Sub
 
 Public Sub Refresh()
@@ -2100,6 +2107,7 @@ Attribute Refresh.VB_UserMemId = -550
 If PropIsTygemButton Then
     tygButton.Visible = False
     tygButton.Visible = True
+    tygButton.Default = Ambient.DisplayAsDefault
 End If
 If CommandButtonTransparentBrush <> NULL_PTR Then
     DeleteObject CommandButtonTransparentBrush
