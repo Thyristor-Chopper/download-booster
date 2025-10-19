@@ -95,8 +95,8 @@ Time As Long
 PT As POINTAPI
 End Type
 Private Type SIZEAPI
-CX As Long
-CY As Long
+cx As Long
+cy As Long
 End Type
 Private Type BUTTON_SPLITINFO
 Mask As Long
@@ -111,8 +111,8 @@ uAlign As Long
 End Type
 Private Type NMHDR
 hWndFrom As LongPtr
-IDFrom As LongPtr
-Code As Long
+idFrom As LongPtr
+code As Long
 End Type
 Private Type NMBCHOTITEM
 hdr As NMHDR
@@ -181,7 +181,7 @@ Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByRef Desti
 Private Declare Function CreateAcceleratorTable Lib "user32" Alias "CreateAcceleratorTableW" (ByVal lpAccel As Long, ByVal cEntries As Long) As Long
 Private Declare Function DestroyAcceleratorTable Lib "user32" (ByVal hAccel As Long) As Long
 Private Declare Function VkKeyScan Lib "user32" Alias "VkKeyScanW" (ByVal cChar As Integer) As Integer
-Private Declare Function CreateWindowEx Lib "user32" Alias "CreateWindowExW" (ByVal dwExStyle As Long, ByVal lpClassName As Long, ByVal lpWindowName As Long, ByVal dwStyle As Long, ByVal X As Long, ByVal Y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hWndParent As Long, ByVal hMenu As Long, ByVal hInstance As Long, ByRef lpParam As Any) As Long
+Private Declare Function CreateWindowEx Lib "user32" Alias "CreateWindowExW" (ByVal dwExStyle As Long, ByVal lpClassName As Long, ByVal lpWindowName As Long, ByVal dwStyle As Long, ByVal X As Long, ByVal Y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hwndParent As Long, ByVal hMenu As Long, ByVal hInstance As Long, ByRef lpParam As Any) As Long
 Private Declare Function SendMessage Lib "user32" Alias "SendMessageW" (ByVal hWnd As Long, ByVal wMsg As Long, ByVal wParam As Long, ByRef lParam As Any) As Long
 Private Declare Function DestroyWindow Lib "user32" (ByVal hWnd As Long) As Long
 Private Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongW" (ByVal hWnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
@@ -220,7 +220,7 @@ Private Declare Function SetTextColor Lib "gdi32" (ByVal hDC As Long, ByVal crCo
 Private Declare Function CreateSolidBrush Lib "gdi32" (ByVal crColor As Long) As Long
 Private Declare Function FillRect Lib "user32" (ByVal hDC As Long, ByRef lpRect As RECT, ByVal hBrush As Long) As Long
 Private Declare Function TransparentBlt Lib "msimg32" (ByVal hDestDC As Long, ByVal X As Long, ByVal Y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hSrcDC As Long, ByVal XSrc As Long, ByVal YSrc As Long, ByVal nWidthSrc As Long, ByVal nHeightSrc As Long, ByVal crTransparent As Long) As Long
-Private Declare Function DrawState Lib "user32" Alias "DrawStateW" (ByVal hDC As Long, ByVal hBrush As Long, ByVal lpDrawStateProc As Long, ByVal lData As Long, ByVal wData As Long, ByVal X As Long, ByVal Y As Long, ByVal CX As Long, ByVal CY As Long, ByVal fFlags As Long) As Long
+Private Declare Function DrawState Lib "user32" Alias "DrawStateW" (ByVal hDC As Long, ByVal hBrush As Long, ByVal lpDrawStateProc As Long, ByVal lData As Long, ByVal wData As Long, ByVal X As Long, ByVal Y As Long, ByVal cx As Long, ByVal cy As Long, ByVal fFlags As Long) As Long
 Private Declare Function DrawFocusRect Lib "user32" (ByVal hDC As Long, ByRef lpRect As RECT) As Long
 Private Declare Function DrawFrameControl Lib "user32" (ByVal hDC As Long, ByRef lpRect As RECT, ByVal nCtlType As Long, ByVal nFlags As Long) As Long
 Private Declare Function DrawEdge Lib "user32" (ByVal hDC As Long, ByRef qRC As RECT, ByVal Edge As Long, ByVal grfFlags As Long) As Long
@@ -445,6 +445,7 @@ Private PropMaskColor As OLE_COLOR
 Private PropDrawMode As CmdDrawModeConstants
 Private PropIsTygemButton As Boolean
 Private PropRoundButton As Boolean
+Private PropLazyCreate As Boolean
 
 Private bMouseDown As Boolean
 Private CurrentImageList As ImageList
@@ -572,15 +573,15 @@ Private Sub UserControl_Initialize()
 ''Call ComCtlsLoadShellMod
 ''Call ComCtlsInitCC(ICC_STANDARD_CLASSES)
 
-#If ImplementPreTranslateMsg = True Then
-
-If SetVTableHandling(Me, VTableInterfaceInPlaceActiveObject) = False Then UsePreTranslateMsg = True
-
-#Else
-
+'#If ImplementPreTranslateMsg = True Then
+'
+'If SetVTableHandling(Me, VTableInterfaceInPlaceActiveObject) = False Then UsePreTranslateMsg = True
+'
+'#Else
+'
 'Call SetVTableHandling(Me, VTableInterfaceInPlaceActiveObject)
-
-#End If
+'
+'#End If
 
 'Call SetVTableHandling(Me, VTableInterfaceControl)
 'Call SetVTableHandling(Me, VTableInterfacePerPropertyBrowsing)
@@ -626,7 +627,7 @@ PropMaskColor = &HC0C0C0
 PropDrawMode = CmdDrawModeNormal
 PropIsTygemButton = False
 PropRoundButton = False
-Call CreateCommandButton
+'Call CreateCommandButton
 End Sub
 
 Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
@@ -683,6 +684,7 @@ PropMaskColor = .ReadProperty("MaskColor", &HC0C0C0)
 PropDrawMode = .ReadProperty("DrawMode", CmdDrawModeNormal)
 PropIsTygemButton = False '.ReadProperty("IsTygemButton", False)
 PropRoundButton = .ReadProperty("RoundButton", False)
+PropLazyCreate = .ReadProperty("LazyCreate", False)
 tygButton.Visible = PropIsTygemButton
 tygButton.Enabled = Me.Enabled
 tygButton.Caption = PropCaption
@@ -699,6 +701,7 @@ If .ReadProperty("Default", False) = True Then
     tygButton.Default = True
 End If
 End With
+'If Not LazyCreate Then
 Call CreateCommandButton
 If Not PropImageListName = "(None)" Then
     TimerImageList.Enabled = True
@@ -742,6 +745,7 @@ With PropBag
 .WriteProperty "DrawMode", PropDrawMode, CmdDrawModeNormal
 '.WriteProperty "IsTygemButton", PropIsTygemButton, False
 .WriteProperty "RoundButton", PropRoundButton, False
+.WriteProperty "LazyCreate", PropLazyCreate, False
 End With
 End Sub
 
@@ -751,34 +755,33 @@ If CommandButtonHandle <> NULL_PTR Then
 End If
 End Sub
 
-Private Sub UserControl_OLECompleteDrag(Effect As Long)
-RaiseEvent OLECompleteDrag(Effect)
-End Sub
-
-Private Sub UserControl_OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
-RaiseEvent OLEDragDrop(Data, Effect, Button, Shift, UserControl.ScaleX(X, vbPixels, vbContainerPosition), UserControl.ScaleY(Y, vbPixels, vbContainerPosition))
-End Sub
-
-Private Sub UserControl_OLEDragOver(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single, State As Integer)
-RaiseEvent OLEDragOver(Data, Effect, Button, Shift, UserControl.ScaleX(X, vbPixels, vbContainerPosition), UserControl.ScaleY(Y, vbPixels, vbContainerPosition), State)
-End Sub
-
-Private Sub UserControl_OLEGiveFeedback(Effect As Long, DefaultCursors As Boolean)
-RaiseEvent OLEGiveFeedback(Effect, DefaultCursors)
-End Sub
-
-Private Sub UserControl_OLESetData(Data As DataObject, DataFormat As Integer)
-RaiseEvent OLESetData(Data, DataFormat)
-End Sub
-
-Private Sub UserControl_OLEStartDrag(Data As DataObject, AllowedEffects As Long)
-RaiseEvent OLEStartDrag(Data, AllowedEffects)
-End Sub
-
-Public Sub OLEDrag()
-Attribute OLEDrag.VB_Description = "Starts an OLE drag/drop event with the given control as the source."
-UserControl.OLEDrag
-End Sub
+'Private Sub UserControl_OLECompleteDrag(Effect As Long)
+'RaiseEvent OLECompleteDrag(Effect)
+'End Sub
+'
+'Private Sub UserControl_OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+'RaiseEvent OLEDragDrop(Data, Effect, Button, Shift, UserControl.ScaleX(X, vbPixels, vbContainerPosition), UserControl.ScaleY(Y, vbPixels, vbContainerPosition))
+'End Sub
+'
+'Private Sub UserControl_OLEDragOver(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single, State As Integer)
+'RaiseEvent OLEDragOver(Data, Effect, Button, Shift, UserControl.ScaleX(X, vbPixels, vbContainerPosition), UserControl.ScaleY(Y, vbPixels, vbContainerPosition), State)
+'End Sub
+'
+'Private Sub UserControl_OLEGiveFeedback(Effect As Long, DefaultCursors As Boolean)
+'RaiseEvent OLEGiveFeedback(Effect, DefaultCursors)
+'End Sub
+'
+'Private Sub UserControl_OLESetData(Data As DataObject, DataFormat As Integer)
+'RaiseEvent OLESetData(Data, DataFormat)
+'End Sub
+'
+'Private Sub UserControl_OLEStartDrag(Data As DataObject, AllowedEffects As Long)
+'RaiseEvent OLEStartDrag(Data, AllowedEffects)
+'End Sub
+'
+'Public Sub OLEDrag()
+'UserControl.OLEDrag
+'End Sub
 
 Private Sub UserControl_AccessKeyPress(KeyAscii As Integer)
 'Select Case KeyAscii
@@ -920,10 +923,10 @@ exitif:
     Else
         'MoveWindow CommandButtonHandle, -((.ScaleWidth + 5) * PropIsTygemButton), -((.ScaleHeight + 5) * PropIsTygemButton), .ScaleWidth, .ScaleHeight, 1&
     End If
+    SetRgn
 End If
 End With
 InProc = False
-SetRgn
 End Sub
 
 Private Sub UserControl_Terminate()
@@ -1293,6 +1296,14 @@ End Property
 Public Property Let RoundButton(ByVal Value As Boolean)
 PropRoundButton = Value
 SetRgn
+End Property
+
+Public Property Get LazyCreate() As Boolean
+LazyCreate = PropLazyCreate
+End Property
+
+Public Property Let LazyCreate(ByVal Value As Boolean)
+PropLazyCreate = Value
 End Property
 
 Public Property Get OLEDropMode() As OLEDropModeConstants
@@ -1880,12 +1891,12 @@ Public Property Set SplitButtonGlyph(ByVal Value As IPictureDisp)
 UserControl.PropertyChanged "SplitButtonGlyph"
 End Property
 
-Public Property Get Style() As VBRUN.ButtonConstants
-Attribute Style.VB_Description = "Returns/sets the appearance of the control, whether standard or graphical."
-Style = PropStyle
+Public Property Get style() As VBRUN.ButtonConstants
+Attribute style.VB_Description = "Returns/sets the appearance of the control, whether standard or graphical."
+style = PropStyle
 End Property
 
-Public Property Let Style(ByVal Value As VBRUN.ButtonConstants)
+Public Property Let style(ByVal Value As VBRUN.ButtonConstants)
 'Select Case Value
 '    Case vbButtonStandard, vbButtonGraphical
 '        If PropDrawMode <> CmdDrawModeNormal And Value = vbButtonGraphical Then
@@ -1986,7 +1997,7 @@ Public Property Let DrawMode(ByVal Value As CmdDrawModeConstants)
 UserControl.PropertyChanged "DrawMode"
 End Property
 
-Private Sub CreateCommandButton()
+Sub CreateCommandButton()
 If CommandButtonHandle <> NULL_PTR Then Exit Sub
 Dim dwStyle As Long, dwExStyle As Long
 dwStyle = WS_CHILD Or WS_VISIBLE Or BS_PUSHBUTTON Or BS_TEXT 'Or BS_NOTIFY
@@ -2194,8 +2205,8 @@ If CommandButtonHandle <> NULL_PTR And ComCtlsSupportLevel() >= 1 Then
     Dim Size As SIZEAPI
     SendMessage CommandButtonHandle, BCM_GETIDEALSIZE, 0, ByVal VarPtr(Size)
     With UserControl
-    Width = .ScaleX(Size.CX, vbPixels, vbContainerSize)
-    Height = .ScaleY(Size.CY, vbPixels, vbContainerSize)
+    Width = .ScaleX(Size.cx, vbPixels, vbContainerSize)
+    Height = .ScaleY(Size.cy, vbPixels, vbContainerSize)
     End With
 End If
 End Sub
@@ -2482,7 +2493,7 @@ Select Case wMsg
         Dim NM As NMHDR
         CopyMemory NM, ByVal lParam, LenB(NM)
         If NM.hWndFrom = CommandButtonHandle Then
-            Select Case NM.Code
+            Select Case NM.code
                 Case BCN_HOTITEMCHANGE
                     Dim NMBCHI As NMBCHOTITEM
                     CopyMemory NMBCHI, ByVal lParam, LenB(NMBCHI)
@@ -2507,17 +2518,17 @@ Select Case wMsg
                 If hDCBmp <> NULL_PTR Then
                     hBmp = CreateCompatibleBitmap(wParam, .ScaleWidth, .ScaleHeight)
                     If hBmp <> NULL_PTR Then
-                        Dim hWndParent As LongPtr
-                        hWndParent = GetParent(.hWnd)
-                        If (GetWindowLong(hWndParent, GWL_EXSTYLE) And WS_EX_LAYOUTRTL) = WS_EX_LAYOUTRTL Then SetLayout hDCBmp, LAYOUT_RTL
+                        Dim hwndParent As LongPtr
+                        hwndParent = GetParent(.hWnd)
+                        If (GetWindowLong(hwndParent, GWL_EXSTYLE) And WS_EX_LAYOUTRTL) = WS_EX_LAYOUTRTL Then SetLayout hDCBmp, LAYOUT_RTL
                         hBmpOld = SelectObject(hDCBmp, hBmp)
                         Dim WndRect As RECT, P As POINTAPI
                         GetWindowRect .hWnd, WndRect
-                        MapWindowPoints hWnd_DESKTOP, hWndParent, WndRect, 2
+                        MapWindowPoints hWnd_DESKTOP, hwndParent, WndRect, 2
                         P.X = WndRect.Left
                         P.Y = WndRect.Top
                         SetViewportOrgEx hDCBmp, -P.X, -P.Y, P
-                        SendMessage hWndParent, WM_PAINT, hDCBmp, ByVal 0&
+                        SendMessage hwndParent, WM_PAINT, hDCBmp, ByVal 0&
                         SetViewportOrgEx hDCBmp, P.X, P.Y, P
                         CommandButtonTransparentBrush = CreatePatternBrush(hBmp)
                         SelectObject hDCBmp, hBmpOld

@@ -2699,7 +2699,13 @@ Private Sub cmdOpenFolder_Click()
 End Sub
 
 Private Sub cmdOptions_Click()
-    frmOptions.Show vbModal, Me
+    ShowPropertySheet Me, t("옵션", "Options"), _
+        pagGeneral, t("일반", "General"), 7050, 5145, _
+        pagConnection, t("연결", "Connection"), 6990, 2325, _
+        pagAppearance, t("화면 배색", "Appearance"), 7125, 5190, _
+        pagSounds, t("효과음", "Sounds"), 7020, 4410, _
+        pagAdvanced, t("고급", "Advanced"), 7140, 100
+    'frmOptions.Show vbModal, Me
 End Sub
 
 Private Sub cmdStartBatch_Click()

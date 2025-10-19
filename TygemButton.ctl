@@ -101,7 +101,7 @@ Dim m_SplitRight As Boolean
 Const m_def_Default = False
 Dim m_Default As Boolean
 
-Const m_def_Skin = 1
+Const m_def_Skin = 0
 Dim m_Skin As ButtonSkin
 
 Enum ButtonIconPositions

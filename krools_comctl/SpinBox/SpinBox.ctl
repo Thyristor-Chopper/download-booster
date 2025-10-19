@@ -66,8 +66,8 @@ nInc As Long
 End Type
 Private Type NMHDR
 hWndFrom As LongPtr
-IDFrom As LongPtr
-Code As Long
+idFrom As LongPtr
+code As Long
 End Type
 Private Type NMUPDOWN
 hdr As NMHDR
@@ -150,7 +150,7 @@ Private Declare PtrSafe Function GetMessagePos Lib "user32" () As Long
 Private Declare PtrSafe Function WindowFromPoint Lib "user32" (ByVal XY As Currency) As LongPtr
 #Else
 Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByRef Destination As Any, ByRef Source As Any, ByVal Length As Long)
-Private Declare Function CreateWindowEx Lib "user32" Alias "CreateWindowExW" (ByVal dwExStyle As Long, ByVal lpClassName As Long, ByVal lpWindowName As Long, ByVal dwStyle As Long, ByVal X As Long, ByVal Y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hWndParent As Long, ByVal hMenu As Long, ByVal hInstance As Long, ByRef lpParam As Any) As Long
+Private Declare Function CreateWindowEx Lib "user32" Alias "CreateWindowExW" (ByVal dwExStyle As Long, ByVal lpClassName As Long, ByVal lpWindowName As Long, ByVal dwStyle As Long, ByVal X As Long, ByVal Y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hwndParent As Long, ByVal hMenu As Long, ByVal hInstance As Long, ByRef lpParam As Any) As Long
 Private Declare Function SendMessage Lib "user32" Alias "SendMessageW" (ByVal hWnd As Long, ByVal wMsg As Long, ByVal wParam As Long, ByRef lParam As Any) As Long
 Private Declare Function PostMessage Lib "user32" Alias "PostMessageW" (ByVal hWnd As Long, ByVal wMsg As Long, ByVal wParam As Long, ByRef lParam As Any) As Long
 Private Declare Function DestroyWindow Lib "user32" (ByVal hWnd As Long) As Long
@@ -329,15 +329,15 @@ Private Sub UserControl_Initialize()
 'Call ComCtlsLoadShellMod
 'Call ComCtlsInitCC(ICC_STANDARD_CLASSES Or ICC_UPDOWN_CLASS)
 
-#If ImplementPreTranslateMsg = True Then
-
-If SetVTableHandling(Me, VTableInterfaceInPlaceActiveObject) = False Then UsePreTranslateMsg = True
-
-#Else
-
+'#If ImplementPreTranslateMsg = True Then
+'
+'If SetVTableHandling(Me, VTableInterfaceInPlaceActiveObject) = False Then UsePreTranslateMsg = True
+'
+'#Else
+'
 'Call SetVTableHandling(Me, VTableInterfaceInPlaceActiveObject)
-
-#End If
+'
+'#End If
 
 End Sub
 
@@ -1198,20 +1198,20 @@ End Sub
 
 Private Sub ReCreateSpinBox()
 If SpinBoxDesignMode = False Then
-    Dim Locked As Boolean
-    With Me
-    Locked = CBool(LockWindowUpdate(UserControl.hWnd) <> 0)
-    Dim Text As String, SelStart As Long, SelEnd As Long
-    Text = .Text
-    If SpinBoxEditHandle <> NULL_PTR Then SendMessage SpinBoxEditHandle, EM_GETSEL, VarPtr(SelStart), ByVal VarPtr(SelEnd)
-    Call DestroySpinBox
-    Call CreateSpinBox
-    Call UserControl_Resize
-    .Text = Text
-    If SpinBoxEditHandle <> NULL_PTR Then SendMessage SpinBoxEditHandle, EM_SETSEL, SelStart, ByVal SelEnd
-    If Locked = True Then LockWindowUpdate NULL_PTR
-    .Refresh
-    End With
+'    Dim Locked As Boolean
+'    With Me
+'    Locked = CBool(LockWindowUpdate(UserControl.hWnd) <> 0)
+'    Dim Text As String, SelStart As Long, SelEnd As Long
+'    Text = .Text
+'    If SpinBoxEditHandle <> NULL_PTR Then SendMessage SpinBoxEditHandle, EM_GETSEL, VarPtr(SelStart), ByVal VarPtr(SelEnd)
+'    Call DestroySpinBox
+'    Call CreateSpinBox
+'    Call UserControl_Resize
+'    .Text = Text
+'    If SpinBoxEditHandle <> NULL_PTR Then SendMessage SpinBoxEditHandle, EM_SETSEL, SelStart, ByVal SelEnd
+'    If Locked = True Then LockWindowUpdate NULL_PTR
+'    .Refresh
+'    End With
 Else
     Call DestroySpinBox
     Call CreateSpinBox
@@ -1698,7 +1698,7 @@ Select Case wMsg
         Dim NM As NMHDR
         CopyMemory NM, ByVal lParam, LenB(NM)
         If NM.hWndFrom = SpinBoxUpDownHandle Then
-            Select Case NM.Code
+            Select Case NM.code
                 Case UDN_DELTAPOS
                     Dim NMUD As NMUPDOWN
                     CopyMemory NMUD, ByVal lParam, LenB(NMUD)

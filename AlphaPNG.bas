@@ -46,7 +46,7 @@ Private Type BLENDFUNCTION
     SourceConstantAlpha As Byte
     AlphaFormat         As Byte
 End Type
-Private Declare Function GetMem4 Lib "msvbvm60" (ByRef Source As Any, ByRef Dest As Any) As Long ' Always ignore the returned Value, it's useless.
+Private Declare Function GetMem4 Lib "msvbvm60" (ByRef Source As Any, ByRef dest As Any) As Long ' Always ignore the returned Value, it's useless.
 Private Declare Function GdiAlphaBlend Lib "gdi32" (ByVal hdcDest As Long, ByVal xoriginDest As Long, ByVal yoriginDest As Long, ByVal wDest As Long, ByVal hDest As Long, ByVal hdcSrc As Long, ByVal xoriginSrc As Long, ByVal yoriginSrc As Long, ByVal wSrc As Long, ByVal hSrc As Long, ByVal ftn As Long) As Long
 Private Declare Function CloseEnhMetaFile Lib "gdi32" (ByVal hDC As Long) As Long
 Private Declare Function IIDFromString Lib "ole32" (ByVal lpsz As Long, ByRef CLSID As IID) As Long
