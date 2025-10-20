@@ -220,9 +220,9 @@ Public Const SHGFI_TYPENAME As Long = &H400&
 
 Private Const GMEM_MOVEABLE = &H2&
 
-Public Const SWP_NOMOVE = &H2
-Public Const SWP_NOSIZE = &H1
-Public Const SWP_NOZORDER = &H4
+Public Const SWP_NOMOVE As Long = &H2&
+Public Const SWP_NOSIZE As Long = &H1&
+Public Const SWP_NOZORDER As Long = &H4&
 Public Const SWP_FRAMECHANGED As Long = &H20&
 
 Enum WindowSkin
@@ -335,7 +335,7 @@ Private Type TIME_ZONE_INFORMATION
     DaylightBias As Long
 End Type
 
-'Public Const WM_ERASEBKGND  As Long = &H14&
+Public Const WM_ERASEBKGND  As Long = &H14&
 Public Const WM_NOTIFY As Long = &H4E&
 Public Const WM_MOVE As Long = &H3&
 'Public Const WM_MOVING As Long = &H216&
@@ -828,14 +828,15 @@ Sub SetFormBackgroundColor(frmForm As Form, Optional DisableClassicTheme As Bool
     End If
 
     On Error Resume Next
-    Dim ctrl As Control
+    Dim ctrl As Control, Tags() As String
     For Each ctrl In frmForm.Controls
         If TypeOf ctrl Is CheckBox Or TypeOf ctrl Is DriveListBox Or TypeOf ctrl Is FileListBox Or TypeOf ctrl Is DirListBox Or TypeOf ctrl Is TextBox Or TypeOf ctrl Is ComboBox Or TypeOf ctrl Is ImageCombo Or TypeOf ctrl Is ToolBar Or TypeOf ctrl Is PictureBox Or TypeOf ctrl Is Label Or TypeOf ctrl Is TabStrip Or TypeOf ctrl Is Slider Or TypeOf ctrl Is OptionButton Or TypeOf ctrl Is ProgressBar Or TypeOf ctrl Is FrameW Or TypeOf ctrl Is CommandButton Or TypeOf ctrl Is CommandButtonW Or TypeOf ctrl Is CheckBoxW Or TypeOf ctrl Is CheckBox Or TypeOf ctrl Is Frame Or TypeOf ctrl Is StatusBar Or TypeOf ctrl Is ListView Or TypeOf ctrl Is ListBox Then
-            If TypeOf ctrl Is CommandButtonW And ctrl.Tag <> "notygchange" Then
+            Tags = Split(ctrl.Tag, " ")
+            If (TypeOf ctrl Is CommandButtonW) And ArrayIncludes(Tags, "notygchange") = False Then
                 ctrl.IsTygemButton = CurrentButtonSkin > 0
                 If CurrentButtonSkin = 0 Then ctrl.Refresh Else ctrl.GetTygemButton().Skin = CurrentButtonSkin
             End If
-            If ctrl.Tag <> "novisualstylechange" And ctrl.Tag <> "nobackcolorchange novisualstylechange" Then
+            If ArrayIncludes(Tags, "novisualstylechange") = False Then
                 If TypeOf ctrl Is CommandButton Or TypeOf ctrl Is DriveListBox Or TypeOf ctrl Is FileListBox Or TypeOf ctrl Is DirListBox Or TypeOf ctrl Is TextBox Or TypeOf ctrl Is ComboBox Then
                     If DisableVisualStyle Then
                         RemoveVisualStyles ctrl.hWnd
@@ -867,7 +868,7 @@ Sub SetFormBackgroundColor(frmForm As Form, Optional DisableClassicTheme As Bool
                 If (Not IsSystemColor) And (TypeOf ctrl Is FrameW Or TypeOf ctrl Is CheckBoxW Or TypeOf ctrl Is OptionButton Or TypeOf ctrl Is Frame Or TypeOf ctrl Is CheckBox) Then
                     If Not (TypeOf ctrl Is PictureBox) Then RemoveVisualStyles ctrl.hWnd
                     ctrl.VisualStyles = False
-                ElseIf (Not DisableVisualStyle) And ctrl.VisualStyles = False And ctrl.Tag <> "novisualstylechange" And ctrl.Tag <> "nobackcolorchange novisualstylechange" Then
+                ElseIf (Not DisableVisualStyle) And ctrl.VisualStyles = False And ArrayIncludes(Tags, "novisualstylechange") = False Then
                     If Not (TypeOf ctrl Is PictureBox) Then ActivateVisualStyles ctrl.hWnd
                     ctrl.VisualStyles = True
                 End If
@@ -875,7 +876,7 @@ Sub SetFormBackgroundColor(frmForm As Form, Optional DisableClassicTheme As Bool
             If TypeOf ctrl Is PictureBox And (Not ctrl.Tag = "forcebgchange") Then
                 If ctrl.AutoRedraw = True Then GoTo nextfor
             End If
-            If ctrl.Tag <> "nobackcolorchange" And ctrl.Tag <> "nobackcolorchange novisualstylechange" And ctrl.BackColor <> clrBackColor Then
+            If ArrayIncludes(Tags, "nobackcolorchange") = False And ctrl.BackColor <> clrBackColor Then
                 ctrl.BackColor = clrBackColor
                 If TypeOf ctrl Is CheckBoxW Or TypeOf ctrl Is FrameW Then
                     If ctrl.Transparent Then ctrl.Refresh

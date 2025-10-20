@@ -346,26 +346,27 @@ Private Function PageDlgProc(ByVal hDlg As Long, ByVal uMsg As Long, ByVal wPara
             PageForm.Width = DialogWidth
             PageForm.Height = DialogHeight
             Dim TabBackgroundHint As Long: TabBackgroundHint = GetThemeColor(PageForm.hWnd, "TAB", 9&, 1&, 3821&, &H8000000F)
-            PageForm.BackColor = TabBackgroundHint
             On Error Resume Next
             PageForm.Initialize
-            'On Error GoTo 0
-            'On Error Resume Next
+            On Error GoTo 0
+            PageForm.BackColor = TabBackgroundHint
+            On Error Resume Next
             '방법 1, 폼을 통째로 이동
             SetWindowLong PageForm.hWnd, GWL_STYLE, GetWindowLong(PageForm.hWnd, GWL_STYLE) Or WS_CHILD
             SetWindowLong PageForm.hWnd, GWL_EXSTYLE, GetWindowLong(PageForm.hWnd, GWL_EXSTYLE) Or WS_EX_CONTROLPARENT
             SetParent PageForm.hWnd, hDlg
-            Dim ctrl As Control, hwndSwp As Long
+            Dim ctrl As Control, hwndSwp As Long, hwndUC As Long
             For Each ctrl In ControlsOf(PageForm)
                 hwndSwp = ctrl.hWnd
+                hwndUC = 0&: hwndUC = ctrl.hWndUserControl
                 If TypeOf ctrl Is Frame Or TypeOf ctrl Is PictureBox Then
                     SetWindowLong ctrl.hWnd, GWL_EXSTYLE, GetWindowLong(ctrl.hWnd, GWL_EXSTYLE) Or WS_EX_CONTROLPARENT
-                ElseIf TypeOf ctrl Is SpinBox Or TypeOf ctrl Is CommandButtonW Or TypeOf ctrl Is Slider Then
-                    SetWindowLong ctrl.hWndUserControl, GWL_STYLE, GetWindowLong(ctrl.hWndUserControl, GWL_STYLE) Or WS_TABSTOP
-                    hwndSwp = ctrl.hWndUserControl
+                ElseIf hwndUC Then
+                    SetWindowLong hwndUC, GWL_STYLE, GetWindowLong(hwndUC, GWL_STYLE) Or WS_TABSTOP
+                    hwndSwp = hwndUC
                 End If
                 SetWindowPos hwndSwp, 1&, 0&, 0&, 0&, 0&, SWP_NOMOVE Or SWP_NOSIZE
-                If (Not TypeOf ctrl.Container Is PictureBox) And (Not TypeOf ctrl Is PictureBox) And (Not TypeOf ctrl Is Shape) And (Not TypeOf ctrl Is ComboBox) And (Not TypeOf ctrl Is TextBox) And (Not TypeOf ctrl Is SpinBox) And ctrl.Tag <> "nobackcolorchange" And ctrl.Tag <> "nobackcolorchange novisualstylechange" Then ctrl.BackColor = TabBackgroundHint
+                If (Not TypeOf ctrl Is Shape) And ctrl.BackColor = vbButtonFace And ArrayIncludes(Split(ctrl.Tag, " "), "nobackcolorchange") = False Then ctrl.BackColor = TabBackgroundHint
             Next ctrl
             ShowWindow PageForm.hWnd, SW_SHOW
             

@@ -33,7 +33,7 @@ Begin VB.Form pagAppearance
       ScaleWidth      =   6735
       TabIndex        =   0
       TabStop         =   0   'False
-      Tag             =   "nobgdraw"
+      Tag             =   "nobackcolorchange"
       Top             =   120
       Width           =   6795
       Begin VB.PictureBox pbBackground 
@@ -43,7 +43,7 @@ Begin VB.Form pagAppearance
          ScaleWidth      =   3975
          TabIndex        =   1
          TabStop         =   0   'False
-         Tag             =   "nobgdraw"
+         Tag             =   "nobackcolorchange"
          Top             =   120
          Width           =   4035
          Begin VB.Frame FrameW5 
@@ -51,12 +51,13 @@ Begin VB.Form pagAppearance
             Height          =   555
             Left            =   180
             TabIndex        =   4
+            Tag             =   "nobackcolorchange"
             Top             =   375
             Width           =   3615
             Begin prjDownloadBooster.ProgressBar pbSampleClassic 
                Height          =   225
                Left            =   120
-               Tag             =   "novisualstylechange"
+               Tag             =   "nobackcolorchange novisualstylechange"
                Top             =   240
                Visible         =   0   'False
                Width           =   3375
@@ -70,7 +71,7 @@ Begin VB.Form pagAppearance
             Begin prjDownloadBooster.ProgressBar pbSample 
                Height          =   225
                Left            =   120
-               Tag             =   "novisualstylechange"
+               Tag             =   "nobackcolorchange novisualstylechange"
                Top             =   240
                Width           =   3375
                _ExtentX        =   5953
@@ -93,6 +94,7 @@ Begin VB.Form pagAppearance
             Height          =   255
             Left            =   180
             TabIndex        =   5
+            Tag             =   "nobackcolorchange"
             Top             =   960
             Width           =   1695
          End
@@ -122,8 +124,16 @@ Begin VB.Form pagAppearance
             Height          =   255
             Left            =   180
             TabIndex        =   2
+            Tag             =   "nobackcolorchange"
             Top             =   120
             Width           =   975
+         End
+         Begin VB.Image imgPreview 
+            Height          =   135
+            Left            =   0
+            Stretch         =   -1  'True
+            Top             =   0
+            Width           =   135
          End
          Begin VB.Shape pgPatternPreview 
             BackColor       =   &H8000000F&
@@ -133,13 +143,6 @@ Begin VB.Form pagAppearance
             Left            =   0
             Top             =   0
             Width           =   255
-         End
-         Begin VB.Image imgPreview 
-            Height          =   135
-            Left            =   0
-            Stretch         =   -1  'True
-            Top             =   0
-            Width           =   135
          End
       End
    End

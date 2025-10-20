@@ -366,7 +366,7 @@ Sub Initialize()
     InitForm Me, True
     Loaded = False
     FontChanged = False
-
+    
     AddItemToComboBox cbFont, "(" & t("±âº»°ª", "default") & ")"
     If t(1, 2) = 2 Then
         If FontExists("Tahoma") Then AddItemToComboBox cbFont, "Tahoma"
