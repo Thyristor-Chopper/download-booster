@@ -101,7 +101,7 @@ Dim m_SplitRight As Boolean
 Const m_def_Default = False
 Dim m_Default As Boolean
 
-Const m_def_Skin = 0
+Const m_def_Skin = 1
 Dim m_Skin As ButtonSkin
 
 Enum ButtonIconPositions
@@ -562,6 +562,10 @@ Private Sub UserControl_Resize()
     lSplit.X2 = lSplit.X1
     DrawSkin DrawNormalState
 End Sub
+
+Function GetFocusRect() As Shape
+    Set GetFocusRect = pgFocusRect
+End Function
 
 'Private Sub UserControl_ReadProperties(PropBag As PropertyBag)
     'm_Enabled = PropBag.ReadProperty("Enabled", m_def_Enabled)

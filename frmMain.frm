@@ -2699,7 +2699,7 @@ Private Sub cmdOpenFolder_Click()
 End Sub
 
 Private Sub cmdOptions_Click()
-    ShowPropertySheet Me, t("옵션", "Options"), _
+    ShowPropertySheetEx Me, t("옵션", "Options"), _
         pagGeneral, t("일반", "General"), 7050, 5145, _
         pagConnection, t("연결", "Connection"), 6990, 2325, _
         pagAppearance, t("화면 배색", "Appearance"), 7125, 5190, _

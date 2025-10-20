@@ -116,6 +116,15 @@ Begin VB.Form pagAppearance
             _ExtentY        =   503
             Caption         =   "다운로드"
          End
+         Begin VB.Label Label11 
+            BackStyle       =   0  '투명
+            Caption         =   "파일 주소:"
+            Height          =   255
+            Left            =   180
+            TabIndex        =   2
+            Top             =   120
+            Width           =   975
+         End
          Begin VB.Shape pgPatternPreview 
             BackColor       =   &H8000000F&
             BackStyle       =   1  '투명하지 않음
@@ -131,15 +140,6 @@ Begin VB.Form pagAppearance
             Stretch         =   -1  'True
             Top             =   0
             Width           =   135
-         End
-         Begin VB.Label Label11 
-            BackStyle       =   0  '투명
-            Caption         =   "파일 주소:"
-            Height          =   255
-            Left            =   180
-            TabIndex        =   2
-            Top             =   120
-            Width           =   975
          End
       End
    End
@@ -359,7 +359,7 @@ Begin VB.Form pagAppearance
       _ExtentY        =   529
       Caption         =   "저장(&V)..."
    End
-   Begin VB.Frame FrameW4 
+   Begin VB.Frame fForeColor 
       Caption         =   "글자색"
       Height          =   1200
       Left            =   120
@@ -421,7 +421,7 @@ Begin VB.Form pagAppearance
          Width           =   600
       End
    End
-   Begin VB.Frame Frame1 
+   Begin VB.Frame fBackColor 
       Caption         =   "배경색"
       Height          =   1200
       Left            =   120
@@ -499,3 +499,362 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
+
+Dim Loaded As Boolean
+Public ColorChanged As Boolean
+Public ImageChanged As Boolean
+Public VisualStyleChanged As Boolean
+Dim SkinChanged As Boolean
+Public ProgressSkinChanged As Boolean
+Dim PatternChanged As Boolean
+Public ChangedBackgroundPath$
+Dim DoLoadTheme As Boolean
+Dim BackgroundParentDir As String
+Dim PatternsSplit() As String
+Dim PatternL As Byte, PatternU As Byte
+
+Public RoundClassicButtons As Byte, DisableVisualStyle As Byte
+Public LiveBadukMemoSkinShadowColor&, LiveBadukMemoSkinFrameColor&, LiveBadukMemoSkinFrameType$, LiveBadukMemoSkinTextColor&, LiveBadukMemoSkinEnableShadow As Byte, LiveBadukMemoSkinEnableTextColor As Byte, LiveBadukMemoSkinEnableBorder As Byte, LiveBadukMemoSkinFrameBackgroundType$, LiveBadukMemoSkinFrameBackgroundColor&, LiveBadukMemoSkinContentTextColor&, LiveBadukMemoSkinFrameTexture$, LiveBadukMemoSkinFrameBackground$, LiveBadukMemoSkinLabelFontSize As Integer, LiveBadukMemoSkinLabelFontBold As Byte, LiveBadukMemoSkinEnableLabelFontSize As Byte
+Public ClassicFrame As Byte, NoDWMFrame As Byte
+
+Implements IBSSubclass
+
+Private Sub cbImagePosition_Click()
+    chkCenter.Enabled = (cbImagePosition.ListIndex >= 1 And cbImagePosition.ListIndex <= 3 And lvBackgrounds.ListIndex <> 0)
+    If Loaded Then
+        EnableApply Me
+        ImageChanged = True
+    End If
+End Sub
+
+Private Sub Form_Load()
+    AttachMessage Me, fBackColor.hWnd, WM_PRINTCLIENT
+    AttachMessage Me, fForeColor.hWnd, WM_PRINTCLIENT
+End Sub
+
+Private Sub Form_Unload(Cancel As Integer)
+    IBSSubclass_UnsubclassIt
+End Sub
+
+Private Function IBSSubclass_MsgResponse(ByVal hWnd As Long, ByVal uMsg As Long) As EMsgResponse
+    IBSSubclass_MsgResponse = emrConsume
+End Function
+
+Private Sub IBSSubclass_UnsubclassIt()
+    DetachMessage Me, fBackColor.hWnd, WM_PRINTCLIENT
+    DetachMessage Me, fForeColor.hWnd, WM_PRINTCLIENT
+End Sub
+
+Private Function IBSSubclass_WindowProc(ByVal hWnd As Long, ByVal uMsg As Long, ByRef wParam As Long, ByRef lParam As Long, ByRef bConsume As Boolean) As Long
+    On Error Resume Next
+ 
+    Select Case uMsg
+        Case WM_PRINTCLIENT
+            SendMessage hWnd, WM_PAINT, wParam, ByVal 0&
+            
+            IBSSubclass_WindowProc = 0&
+            Exit Function
+    End Select
+    
+    IBSSubclass_WindowProc = CallOldWindowProc(hWnd, uMsg, wParam, lParam)
+End Function
+
+Sub Initialize()
+    InitForm Me, True
+    Loaded = False
+    
+    PatternsSplit = Split("*.jpg;*.jpeg;*.jpe;*.jfif;*.gif;*.bmp;*.dib;*.png;*.wmf;*.emf;*.ico;*.cur;*.tif;*.tiff;*.rle", ";")
+    PatternL = LBound(PatternsSplit)
+    PatternU = UBound(PatternsSplit)
+    
+    pgPatternPreview.Width = pbBackground.Width
+    pgPatternPreview.Height = pbBackground.Height
+    
+    pbBackground.Enabled = False
+    SetPreviewPosition
+    
+    AddItemToComboBox cbFrameSkin, t("시스템 스타일", "System style")
+#If DISABLEFRAMESKIN Then
+#Else
+    AddItemToComboBox cbFrameSkin, t("금속 파랑", "Blue metal")
+    AddItemToComboBox cbFrameSkin, t("금속 초록", "Green metal")
+    AddItemToComboBox cbFrameSkin, "Windows XP"
+#End If
+    
+    AddItemToComboBox cbSkin, t("시스템 스타일", "System style")
+    AddItemToComboBox cbSkin, t("라이브바둑 쪽지", "LiveBaduk memo")
+    AddItemToComboBox cbSkin, t("디스크키퍼 2011", "Diskeeper 2011")
+    AddItemToComboBox cbSkin, t("광택 파랑", "Glossy blue")
+    AddItemToComboBox cbSkin, t("광택 초록", "Glossy green")
+    
+    AddItemToComboBox cbProgressSkin, t("(없음)", "(None)")
+    AddItemToComboBox cbProgressSkin, t("기본 스킨", "Default skin")
+    AddItemToComboBox cbProgressSkin, t("라이브바둑 쪽지", "LiveBaduk memo")
+    
+    AddItemToComboBox lvPatterns, t("(없음)", "(None)")
+    AddItemToComboBox lvPatterns, t("수평선", "Horizontal lines")
+    AddItemToComboBox lvPatterns, t("수직선", "Vertical lines")
+    AddItemToComboBox lvPatterns, t("하향 대각선", "NW-SE lines")
+    AddItemToComboBox lvPatterns, t("상향 대각선", "NE-SW lines")
+    AddItemToComboBox lvPatterns, t("교차", "Grid")
+    AddItemToComboBox lvPatterns, t("대각선 교차", "X grid")
+    
+    AddItemToComboBox cbImagePosition, t("늘이기", "Stretch")
+    AddItemToComboBox cbImagePosition, t("높이 맞춤", "Fit to height")
+    AddItemToComboBox cbImagePosition, t("너비 맞춤", "Fit to width")
+    AddItemToComboBox cbImagePosition, t("원본 크기", "True size")
+    AddItemToComboBox cbImagePosition, t("바둑판식", "Tile")
+    
+    DoLoadTheme = False
+    ClearComboBox cbTheme
+    AddItemToComboBox cbTheme, t("수정된 테마", "Modified theme")
+    cbTheme.ListIndex = 0
+    On Error Resume Next
+    Dim ThemeList() As String
+    If GetSubkeys(HKEY_CURRENT_USER, "Software\VB and VBA Program Settings\DownloadBooster\Options\Themes", ThemeList) Then
+        Dim CurrentTheme$: CurrentTheme = GetSetting("DownloadBooster", "Options", "Theme", "")
+        Dim k&
+        For k = LBound(ThemeList) To UBound(ThemeList)
+            AddItemToComboBox cbTheme, ThemeList(k)
+            If ThemeList(k) = CurrentTheme Then cbTheme.ListIndex = cbTheme.ListCount - 1
+        Next k
+    End If
+    DoLoadTheme = True
+    
+    LoadTheme
+End Sub
+
+Private Sub LoadTheme(Optional ByVal ThemeName As String = "")
+    Dim Section$
+    If ThemeName = "" Then Section = "Options" Else Section = "Options\Themes\" & ThemeName
+    On Error Resume Next
+    
+    Dim clrBackColor As Long
+    clrBackColor = GetSetting("DownloadBooster", Section, "BackColor", DefaultBackColor)
+    If clrBackColor < 0 Or clrBackColor > 16777215 Then
+        optSystemColor.Value = True
+        pgColor.BackColor = &H8000000F
+    Else
+        pgColor.BackColor = clrBackColor
+        optUserColor.Value = True
+    End If
+    FrameW5.BackColor = pgColor.BackColor
+    CheckBoxW1.BackColor = pgColor.BackColor
+    pbBackground.BackColor = pgColor.BackColor
+    pgPatternPreview.BackColor = pgColor.BackColor
+    
+    cbSkin.ListIndex = GetSetting("DownloadBooster", Section, "ButtonSkin", 4)
+    cbFrameSkin.ListIndex = GetSetting("DownloadBooster", Section, "WindowSkin", 0)
+    cbProgressSkin.ListIndex = GetSetting("DownloadBooster", Section, "ProgressFrameSkin", 1)
+    
+    DisableVisualStyle = CByte(GetSetting("DownloadBooster", Section, "DisableVisualStyle", 0))
+    RoundClassicButtons = CByte(GetSetting("DownloadBooster", Section, "RoundClassicButtons", 0))
+    ClassicFrame = CByte(GetSetting("DownloadBooster", Section, "UseClassicThemeFrame", 0))
+    NoDWMFrame = CByte(GetSetting("DownloadBooster", Section, "DisableDWMWindow", DefaultDisableDWMWindow))
+    
+    LiveBadukMemoSkinShadowColor = CLng(GetSetting("DownloadBooster", Section, "LiveBadukMemoSkinShadowColor", 16777215))
+    LiveBadukMemoSkinFrameColor = CLng(GetSetting("DownloadBooster", Section, "LiveBadukMemoSkinFrameColor", 11194780))
+    LiveBadukMemoSkinFrameType = LCase(GetSetting("DownloadBooster", Section, "LiveBadukMemoSkinFrameType", "solidcolor"))
+    LiveBadukMemoSkinTextColor = CLng(GetSetting("DownloadBooster", Section, "LiveBadukMemoSkinTextColor", 2111255))
+    LiveBadukMemoSkinEnableShadow = CByte(GetSetting("DownloadBooster", Section, "LiveBadukMemoSkinEnableShadow", 1))
+    LiveBadukMemoSkinEnableTextColor = CByte(GetSetting("DownloadBooster", Section, "LiveBadukMemoSkinEnableTextColor", 1))
+    LiveBadukMemoSkinEnableBorder = CByte(GetSetting("DownloadBooster", Section, "LiveBadukMemoSkinEnableBorder", 1))
+    LiveBadukMemoSkinFrameBackgroundType = LCase(GetSetting("DownloadBooster", Section, "LiveBadukMemoSkinFrameBackgroundType", "transparent"))
+    LiveBadukMemoSkinFrameBackgroundColor = CLng(GetSetting("DownloadBooster", Section, "LiveBadukMemoSkinFrameBackgroundColor", 16777215))
+    LiveBadukMemoSkinContentTextColor = CLng(GetSetting("DownloadBooster", Section, "LiveBadukMemoSkinContentTextColor", 0))
+    LiveBadukMemoSkinFrameTexture = GetSetting("DownloadBooster", Section, "LiveBadukMemoSkinFrameTexture", "")
+    LiveBadukMemoSkinFrameBackground = GetSetting("DownloadBooster", Section, "LiveBadukMemoSkinFrameBackground", "")
+    LiveBadukMemoSkinLabelFontSize = CInt(GetSetting("DownloadBooster", Section, "LiveBadukMemoSkinLabelFontSize", 10))
+    LiveBadukMemoSkinLabelFontBold = CByte(GetSetting("DownloadBooster", Section, "LiveBadukMemoSkinLabelFontBold", 0))
+    LiveBadukMemoSkinEnableLabelFontSize = CByte(GetSetting("DownloadBooster", Section, "LiveBadukMemoSkinEnableLabelFontSize", 0))
+    
+    If ClassicFrame Then RemoveVisualStyles pbBackground.hWnd
+    
+    cmdSample.RoundButton = RoundClassicButtons
+    cmdSample.VisualStyles = (DisableVisualStyle = 0)
+    cmdSample.IsTygemButton = cbSkin.ListIndex > 0
+    txtSampleClassic.Visible = (DisableVisualStyle <> 0)
+    pbSampleClassic.Visible = (DisableVisualStyle <> 0)
+    
+    lvPatterns.ListIndex = CInt(GetSetting("DownloadBooster", Section, "FormFillStyle", 4))
+    
+    pgPatternColor.BackColor = CLng(GetSetting("DownloadBooster", Section, "FormFillColor", 14544344))
+    pgPatternPreview.FillColor = pgPatternColor.BackColor
+    pgPatternPreview.FillStyle = lvPatterns.ListIndex + 1
+    
+    Dim clrForeColor As Long
+    clrForeColor = GetSetting("DownloadBooster", Section, "ForeColor", -1)
+    If clrForeColor < 0 Or clrForeColor > 16777215 Then
+        optSystemFore.Value = True
+        pgFore.BackColor = &H80000012
+        If DisableVisualStyle = 0 Then
+            ActivateVisualStyles CheckBoxW1.hWnd
+            ActivateVisualStyles FrameW5.hWnd
+        Else
+            RemoveVisualStyles CheckBoxW1.hWnd
+            RemoveVisualStyles FrameW5.hWnd
+        End If
+    Else
+        optUserFore.Value = True
+        pgFore.BackColor = clrForeColor
+        RemoveVisualStyles CheckBoxW1.hWnd
+        RemoveVisualStyles FrameW5.hWnd
+        CheckBoxW1.ForeColor = pgFore.BackColor
+        FrameW5.ForeColor = pgFore.BackColor
+    End If
+    Label11.ForeColor = pgFore.BackColor
+    'CheckBoxW1.Transparent = True
+    'FrameW5.Transparent = True
+    
+    ChangedBackgroundPath = GetSetting("DownloadBooster", Section, "BackgroundImagePath", "")
+    LoadBackgroundList (ThemeName = ""), (GetSetting("DownloadBooster", Section, "UseBackgroundImage", 0) <> 0)
+    Dim imgpos As Byte: imgpos = GetSetting("DownloadBooster", Section, "ImagePosition", 1)
+    If imgpos > 3 And imgpos <= 6 Then
+        imgpos = imgpos - 3: chkCenter.Value = 1
+    ElseIf imgpos = 7 Then
+        imgpos = 4
+    End If
+    cbImagePosition.ListIndex = imgpos
+    cbImagePosition_Click
+    
+    chkBackColorMainOnly = GetSetting("DownloadBooster", Section, "BackColorMainOnly", 0)
+    chkForeColorMainOnly = GetSetting("DownloadBooster", Section, "ForeColorMainOnly", 0)
+End Sub
+
+Sub LoadBackgroundList(Optional ByVal OnLoad As Boolean = False, Optional BackgroundImageEnabled As Boolean)
+    Dim BackgroundPath$: BackgroundPath = ChangedBackgroundPath
+    ClearComboBox lvBackgrounds
+    AddItemToComboBox lvBackgrounds, t("(없음)", "(None)")
+    Dim SelectedIndex&: SelectedIndex = 0
+    BackgroundParentDir = GetParentFolderName(BackgroundPath)
+    If Right$(BackgroundParentDir, 1) <> "\" Then BackgroundParentDir = BackgroundParentDir & "\"
+    If FolderExists(BackgroundParentDir) Then
+        Dim CurrentPattern$
+        Dim CurrentBackgroundLcase$, FileNameLcase$
+        If BackgroundImageEnabled Then
+            CurrentBackgroundLcase = LCase(GetFilename(BackgroundPath))
+            AddItemToComboBox lvBackgrounds, CurrentBackgroundLcase
+            SelectedIndex = 1
+        End If
+        Dim FileName$, PatternMatched As Boolean
+        Dim li&: li = 1
+        Dim i As Byte
+        Dim WFD As WIN32_FIND_DATA
+        Dim hFind As Long
+        hFind = FindFirstFile(BackgroundParentDir & "*.*", WFD)
+        If hFind <> INVALID_HANDLE_VALUE Then
+            Do
+                If li > 50 Then Exit Do
+                If WFD.dwFileAttributes And vbDirectory Then GoTo NextItem
+                FileName = Left$(WFD.cFileName, InStr(WFD.cFileName, vbNullChar) - 1)
+                FileNameLcase = LCase(FileName)
+                PatternMatched = False
+                For i = PatternL To PatternU
+                    CurrentPattern = PatternsSplit(i)
+                    PatternMatched = (FileNameLcase Like CurrentPattern)
+                    If PatternMatched Then Exit For
+                Next i
+                If Not PatternMatched Then GoTo NextItem
+                If BackgroundImageEnabled = True And CurrentBackgroundLcase = FileNameLcase Then GoTo NextItem
+                AddItemToComboBox lvBackgrounds, FileName
+                li = li + 1
+NextItem:
+            Loop While FindNextFile(hFind, WFD)
+            FindClose hFind
+        End If
+    End If
+    lvBackgrounds.ListIndex = SelectedIndex
+End Sub
+
+Private Sub SetPreviewPosition()
+    Dim Left%, Top%, Width%, Height%
+    Left = 30
+    Top = 6
+    Width = 4035
+    Height = 1320
+    pbBackground.BorderStyle = 0
+    SetWindowLong pbBackground.hWnd, GWL_STYLE, GetWindowLong(pbBackground.hWnd, GWL_STYLE) Or WS_BORDER Or WS_OVERLAPPED Or WS_CAPTION Or WS_THICKFRAME Or WS_MINIMIZEBOX Or WS_SYSMENU
+    SetWindowText pbBackground.hWnd, App.Title
+    pbBackground.Top = Top * 15 + 15 + 30
+    pbBackground.Left = Left * 15
+    imgPreview.Width = Width
+    imgPreview.Height = Height
+    pbBackground.Width = Width + PaddedBorderWidth * 15 + DialogBorderWidth * 30
+    pbBackground.Height = Height + PaddedBorderWidth * 15 + DialogBorderWidth * 30 + CaptionHeight * 15
+    RedrawPreview
+End Sub
+
+Sub RedrawPreview()
+    DoEvents
+    pbBackground.Refresh
+'    cmdSample.Refresh
+'    Dim ctrl As Control
+'    On Error Resume Next
+'    For Each ctrl In Me.Controls
+'        If ctrl.Container Is pbBackground Then
+'            ctrl.Refresh
+'            DoEvents
+'        End If
+'    Next ctrl
+'    FrameW5.Refresh
+'    CheckBoxW1.Refresh
+End Sub
+
+Private Sub cbSkin_Click()
+    cmdSample.IsTygemButton = (cbSkin.ListIndex > 0)
+    If cmdSample.IsTygemButton Then cmdSample.GetTygemButton().Skin = cbSkin.ListIndex
+    'cmdSample.Refresh
+    Dim ctrl As Control
+    On Error Resume Next
+    For Each ctrl In Me.Controls
+        If ctrl.Container Is pbBackground And ctrl.Name <> "cmdSample" And ctrl.Name <> "pbSample" And ctrl.Name <> "pbSampleClassic" And ctrl.Name <> "txtSampleClassic" Then
+            ctrl.VisualStyles = cmdSample.VisualStyles
+        End If
+    Next ctrl
+    If Loaded Then
+        EnableApply Me
+        SkinChanged = True
+        VisualStyleChanged = True
+'        If cbSkin.ListIndex = 2 And DPI <> 96 Then
+'            MsgBox t("이 스킨의 일부 요소는 96 DPI(100% 배율)에서만 표시됩니다.", "Some of the elements of this skin only works in 96 DPI (100% size)."), 48
+'        End If
+    End If
+    If optUserFore.Value Then
+        RemoveVisualStyles CheckBoxW1.hWnd
+        RemoveVisualStyles FrameW5.hWnd
+        CheckBoxW1.ForeColor = pgFore.BackColor
+        FrameW5.ForeColor = pgFore.BackColor
+    End If
+    'cmdAdvancedSkin.Enabled = (cbSkin.ListIndex = 0)
+    cmdSample.RoundButton = (GetSetting("DownloadBooster", "Options", "RoundClassicButtons", 0) <> 0)
+End Sub
+
+Private Sub lvBackgrounds_Click()
+    On Error GoTo nopicture
+    Dim BackgroundPath$
+    BackgroundPath = BackgroundParentDir
+    If Right$(BackgroundParentDir, 1) <> "\" Then BackgroundPath = BackgroundPath & "\"
+    BackgroundPath = BackgroundPath & lvBackgrounds.Text
+    If lvBackgrounds.ListIndex = 0 Then
+nopicture:
+        Set imgPreview.Picture = Nothing
+    Else
+        Set imgPreview.Picture = LoadPictureFromFile(BackgroundPath)
+    End If
+    'cmdSample.Refresh
+    ChangedBackgroundPath = BackgroundPath
+    If lvBackgrounds.ListIndex = 0 Then
+        cbImagePosition.Enabled = False
+        chkCenter.Enabled = False
+        Label2.Enabled = False
+    Else
+        cbImagePosition.Enabled = True
+        chkCenter.Enabled = (cbImagePosition.ListIndex >= 1 And cbImagePosition.ListIndex <= 3)
+        Label2.Enabled = True
+    End If
+    If Loaded Then
+        EnableApply Me
+        ImageChanged = True
+        RedrawPreview
+    End If
+End Sub

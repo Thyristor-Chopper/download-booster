@@ -22,6 +22,8 @@ Private Declare Function DeleteObject Lib "gdi32" (ByVal hObject As Long) As Lon
 Private Declare Function GetTextMetrics Lib "gdi32" Alias "GetTextMetricsW" (ByVal hDC As Long, lpMetrics As TEXTMETRIC) As Long
 Private Declare Function SystemParametersInfo Lib "user32" Alias "SystemParametersInfoA" (ByVal uAction As Long, ByVal uParam As Long, lpvParam As Any, ByVal fuWinIni As Long) As Long
 Private Declare Function ShowWindow Lib "user32" (ByVal hWnd As Long, ByVal nCmdShow As Long) As Long
+Private Declare Function CallWindowProc Lib "user32" Alias "CallWindowProcA" (ByVal lpPrevWndFunc As Long, ByVal hWnd As Long, ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+Private Declare Function SetFocus Lib "user32" (ByVal hWnd As Long) As Long
 
 Private Const LOGPIXELSY As Long = 90&
 Private Const FW_NORMAL As Long = 400&
@@ -33,19 +35,26 @@ Private Const DEFAULT_PITCH As Long = 0&
 Private Const FF_DONTCARE As Long = 0&
 Private Const WS_CHILD As Long = &H40000000
 Private Const WS_VISIBLE As Long = &H10000000
+Private Const WS_EX_CONTROLPARENT As Long = &H10000
 Private Const WM_INITDIALOG As Long = &H110&
 Private Const WM_DESTROY As Long = &H2&
 Private Const WM_NOTIFY As Long = &H4E&
 Private Const WM_KEYDOWN As Long = &H100
 Private Const WM_SYSKEYDOWN As Long = &H104
+Private Const WM_USER As Long = &H400&
+Private Const WM_MENUCHAR As Long = 288&
+'Private Const WM_MENUSELECT As Long = 287&
+Private Const MF_SYSMENU As Long = 8192&
 Private Const PSH_PROPTITLE As Long = &H1&
+Private Const PSH_USECALLBACK As Long = &H100&
 Private Const PSP_USETITLE As Long = &H8&
 Private Const PSP_DLGINDIRECT As Long = &H1&
-Private Const WM_USER As Long = &H400&
 Private Const PSM_CHANGED As Long = (WM_USER + 104&)
 Private Const PSM_UNCHANGED As Long = (WM_USER + 109&)
 Private Const PSM_SETTITLE As Long = (WM_USER + 111&)
 Private Const PSM_GETTABCONTROL As Long = (WM_USER + 116&)
+Private Const PSM_ISDIALOGMESSAGE As Long = (WM_USER + 117&)
+Private Const BM_CLICK As Long = &HF5&
 Private Const DS_CONTROL As Long = &H2000&
 Private Const PSN_FIRST As Long = -200&
 Private Const PSN_APPLY As Long = PSN_FIRST - 2&
@@ -54,8 +63,12 @@ Private Const PSN_SETACTIVE As Long = PSN_FIRST - 0&
 Private Const PSN_KILLACTIVE As Long = PSN_FIRST - 1&
 Private Const PSNRET_NOERROR As Long = 0&
 Private Const PSNRET_INVALID As Long = 1&
+Private Const PSCB_INITIALIZED As Long = 1&
 Private Const DWLP_MSGRESULT As Long = 0&
 Private Const GWL_STYLE As Long = -16&
+Private Const GWL_EXSTYLE As Long = -20&
+'Private Const GWL_ID As Long = -12&
+Private Const GWL_WNDPROC As Long = -4&
 Private Const SPI_GETNONCLIENTMETRICS As Long = 41&
 Private Const SW_SHOW As Long = 5&
 Private Const BN_CLICKED As Long = 0&
@@ -181,10 +194,13 @@ Private Type RECT
     Bottom As Long
 End Type
 
-Private PageForms As Collection
-Private hwndMap As Collection
-Private hdlgMap As Collection
-Private Forms As Collection
+Dim DialogWidth&, DialogHeight&
+Dim OldSheetProc As Long
+Dim PageForms As Collection
+Dim hwndMap As Collection
+Dim hdlgMap As Collection
+Dim Forms As Collection
+Dim CurrentPage As Long
 
 Sub EnableApply(Page As Form)
     SendMessage GetParent(hdlgMap(CStr(Page.hWnd))), PSM_CHANGED, hdlgMap(CStr(Page.hWnd)), 0&
@@ -241,7 +257,7 @@ Private Function ControlsOf(frmForm As Form) As Collection
         On Error Resume Next
         Err.Clear
         ctrlTabIndex = ctrl.TabIndex
-        If Err.Number <> 0 Then ctrlTabIndex = 9999
+        If Err.Number <> 0 Then ctrlTabIndex = -9999
         On Error GoTo 0
         
         If ControlsOf.Count = 0 Then
@@ -254,10 +270,10 @@ Private Function ControlsOf(frmForm As Form) As Collection
                 On Error Resume Next
                 Err.Clear
                 cmpTabIndex = ControlsOf.Item(i).TabIndex
-                If Err.Number <> 0 Then cmpTabIndex = 9999
+                If Err.Number <> 0 Then cmpTabIndex = -9999
                 On Error GoTo 0
                 
-                If ctrlTabIndex > cmpTabIndex Then
+                If ctrlTabIndex < cmpTabIndex Then
                     ControlsOf.Add ctrl, Before:=i
                     inserted = True
                     Exit For
@@ -269,10 +285,55 @@ Private Function ControlsOf(frmForm As Form) As Collection
     Next ctrl
 End Function
 
+Private Function SheetWndProc(ByVal hWnd As Long, ByVal uMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+    Select Case uMsg
+        Case WM_MENUCHAR
+            Dim KeyAscii As Integer, ch As String
+            If HiWord(wParam) = MF_SYSMENU Then
+                KeyAscii = LoWord(wParam)
+                If KeyAscii >= 97 And KeyAscii <= 122 Then KeyAscii = KeyAscii - 32
+                If KeyAscii >= 65 And KeyAscii <= 90 Then
+                    ch = "&" & Chr$(KeyAscii)
+                    On Error Resume Next
+                    Dim ctrl As Control, ctrls As Collection, i&, Caption$
+                    Set ctrls = ControlsOf(PageForms(CStr(hwndMap(CStr(CurrentPage)))))
+                    For i = 1 To ctrls.Count
+                        Set ctrl = ctrls(i)
+                        Caption = ctrl.Caption
+                        If InStr(Caption, ch) > 0 And ctrl.Visible Then
+                            Do While TypeOf ctrl Is Label
+                                i = i + 1&
+                                Set ctrl = ctrls(i)
+                            Loop
+                            SetFocus ctrl.hWnd
+                            If TypeOf ctrl Is CommandButton Then
+                                SendMessage ctrl.hWnd, BM_CLICK, 0&, 0&
+                            ElseIf TypeOf ctrl Is OptionButton Then
+                                ctrl.Value = True
+                            ElseIf TypeOf ctrl Is CheckBox Then
+                                If ctrl.Value = 0 Then ctrl.Value = 1 Else ctrl.Value = 0
+                            End If
+
+                            SheetWndProc = 3&
+                            Exit Function
+                        End If
+                    Next i
+                End If
+            End If
+    End Select
+    SheetWndProc = CallWindowProc(OldSheetProc, hWnd, uMsg, wParam, lParam)
+End Function
+
 Private Function PageDlgProc(ByVal hDlg As Long, ByVal uMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+    Dim PageForm As Form
+    On Error Resume Next
+    Set PageForm = PageForms(CStr(hwndMap(CStr(hDlg))))
+    On Error GoTo 0
+
     Select Case uMsg
         Case WM_INITDIALOG
-            Dim ID As Long, PageForm As Form
+            SetWindowLong hDlg, GWL_EXSTYLE, GetWindowLong(hDlg, GWL_EXSTYLE) Or WS_EX_CONTROLPARENT
+            Dim ID As Long
             CopyMemory ID, ByVal (lParam + 28&), 4&
             Set PageForm = Forms(ID)
             PageForm.BorderStyle = 0
@@ -282,35 +343,44 @@ Private Function PageDlgProc(ByVal hDlg As Long, ByVal uMsg As Long, ByVal wPara
             hdlgMap.Add hDlg, CStr(PageForm.hWnd)
             PageForm.Left = 0
             PageForm.Top = 0
+            PageForm.Width = DialogWidth
+            PageForm.Height = DialogHeight
+            Dim TabBackgroundHint As Long: TabBackgroundHint = GetThemeColor(PageForm.hWnd, "TAB", 9&, 1&, 3821&, &H8000000F)
+            PageForm.BackColor = TabBackgroundHint
             On Error Resume Next
             PageForm.Initialize
             'On Error GoTo 0
             'On Error Resume Next
-            Dim ctrl As Control, Container As Frame
+            '방법 1, 폼을 통째로 이동
+            SetWindowLong PageForm.hWnd, GWL_STYLE, GetWindowLong(PageForm.hWnd, GWL_STYLE) Or WS_CHILD
+            SetWindowLong PageForm.hWnd, GWL_EXSTYLE, GetWindowLong(PageForm.hWnd, GWL_EXSTYLE) Or WS_EX_CONTROLPARENT
+            SetParent PageForm.hWnd, hDlg
+            Dim ctrl As Control, hwndSwp As Long
             For Each ctrl In ControlsOf(PageForm)
-                If ctrl.Container Is PageForm Then
-                    SetParent ctrl.hWnd, hDlg
-                ElseIf TypeOf ctrl.Container Is Frame Then
-                    Set Container = ctrl.Container
-                    If TypeOf ctrl Is SpinBox Or TypeOf ctrl Is CommandButtonW Or TypeOf ctrl Is Slider Then
-                        SetParent ctrl.hWndUserControl, hDlg
-                        ctrl.Left = ctrl.Left + Container.Left
-                        ctrl.Top = ctrl.Top + Container.Top
-                    ElseIf TypeOf ctrl Is CheckBox Or TypeOf ctrl Is OptionButton Or TypeOf ctrl Is ComboBox Or TypeOf ctrl Is TextBox Then
-                        SetParent ctrl.hWnd, hDlg
-                        ctrl.Left = ctrl.Left + Container.Left
-                        ctrl.Top = ctrl.Top + Container.Top
-                    End If
-                End If
-                If TypeOf ctrl Is Frame Then
-                    SetWindowLong ctrl.hWnd, GWL_STYLE, (GetWindowLong(ctrl.hWnd, GWL_STYLE) And (Not WS_TABSTOP)) Or WS_GROUP
-                    SetWindowPos ctrl.hWnd, 1&, 0&, 0&, 0&, 0&, SWP_NOMOVE Or SWP_NOSIZE
+                hwndSwp = ctrl.hWnd
+                If TypeOf ctrl Is Frame Or TypeOf ctrl Is PictureBox Then
+                    SetWindowLong ctrl.hWnd, GWL_EXSTYLE, GetWindowLong(ctrl.hWnd, GWL_EXSTYLE) Or WS_EX_CONTROLPARENT
                 ElseIf TypeOf ctrl Is SpinBox Or TypeOf ctrl Is CommandButtonW Or TypeOf ctrl Is Slider Then
                     SetWindowLong ctrl.hWndUserControl, GWL_STYLE, GetWindowLong(ctrl.hWndUserControl, GWL_STYLE) Or WS_TABSTOP
-                ElseIf TypeOf ctrl Is OptionButton Then
-                    SetWindowLong ctrl.hWnd, GWL_STYLE, (GetWindowLong(ctrl.hWnd, GWL_STYLE) Or BS_AUTORADIOBUTTON) And (Not BS_RADIOBUTTON)
+                    hwndSwp = ctrl.hWndUserControl
                 End If
+                SetWindowPos hwndSwp, 1&, 0&, 0&, 0&, 0&, SWP_NOMOVE Or SWP_NOSIZE
+                If (Not TypeOf ctrl.Container Is PictureBox) And (Not TypeOf ctrl Is PictureBox) And (Not TypeOf ctrl Is Shape) And (Not TypeOf ctrl Is ComboBox) And (Not TypeOf ctrl Is TextBox) And (Not TypeOf ctrl Is SpinBox) And ctrl.Tag <> "nobackcolorchange" And ctrl.Tag <> "nobackcolorchange novisualstylechange" Then ctrl.BackColor = TabBackgroundHint
             Next ctrl
+            ShowWindow PageForm.hWnd, SW_SHOW
+            
+            '방법 2, 모든 컨트롤을 각각 이동
+'            Dim ctrl As Control, Container As Frame
+'            For Each ctrl In ControlsOf(PageForm)
+'                If ctrl.Container Is PageForm Then
+'                    SetParent ctrl.hWnd, hDlg
+'                End If
+'                If TypeOf ctrl Is Frame Then
+'                    SetWindowLong ctrl.hWnd, GWL_EXSTYLE, GetWindowLong(ctrl.hWnd, GWL_EXSTYLE) Or WS_EX_CONTROLPARENT
+'                ElseIf TypeOf ctrl Is SpinBox Or TypeOf ctrl Is CommandButtonW Or TypeOf ctrl Is Slider Then
+'                    SetWindowLong ctrl.hWndUserControl, GWL_STYLE, GetWindowLong(ctrl.hWndUserControl, GWL_STYLE) Or WS_TABSTOP
+'                End If
+'            Next ctrl
             On Error GoTo 0
             
             PageDlgProc = 1&
@@ -320,24 +390,26 @@ Private Function PageDlgProc(ByVal hDlg As Long, ByVal uMsg As Long, ByVal wPara
             CopyMemory pnmh, ByVal lParam, LenB(pnmh)
             Select Case pnmh.code
                 Case PSN_APPLY
+                    Dim ApplyResult As Boolean: ApplyResult = True
                     On Error Resume Next
-                    PageForms(CStr(hwndMap(CStr(hDlg)))).ApplyChanges
+                    ApplyResult = PageForm.ApplyChanges()
                     On Error GoTo 0
-                    SetWindowLong hDlg, DWLP_MSGRESULT, PSNRET_NOERROR
+                    SetWindowLong hDlg, DWLP_MSGRESULT, -CLng(Not ApplyResult)
                     
                     PageDlgProc = 1&
                     Exit Function
                 Case PSN_RESET
                     On Error Resume Next
-                    PageForms(CStr(hwndMap(CStr(hDlg)))).CancelClick
+                    PageForm.CancelClick
                     On Error GoTo 0
                     SetWindowLong hDlg, DWLP_MSGRESULT, 0&
                     
                     PageDlgProc = 0&
                     Exit Function
                 Case PSN_SETACTIVE
+                    CurrentPage = hDlg
                     On Error Resume Next
-                    PageForms(CStr(hwndMap(CStr(hDlg)))).Activate
+                    PageForm.Activate
                     On Error GoTo 0
                     SetWindowLong hDlg, DWLP_MSGRESULT, 0&
                     
@@ -345,33 +417,34 @@ Private Function PageDlgProc(ByVal hDlg As Long, ByVal uMsg As Long, ByVal wPara
                     Exit Function
                 Case PSN_KILLACTIVE
                     On Error Resume Next
-                    PageForms(CStr(hwndMap(CStr(hDlg)))).Deactivate
+                    PageForm.Deactivate
                     On Error GoTo 0
                     SetWindowLong hDlg, DWLP_MSGRESULT, 0&
                     
                     PageDlgProc = 1&
                     Exit Function
             End Select
-'        Case WM_COMMAND
-'            If HiWord(wParam) = BN_CLICKED Then
-'                If GetWindowLong(lParam, GWL_STYLE) And BS_RADIOBUTTON Then
-'                    For Each ctrl In PageForms(CStr(hwndMap(CStr(hDlg)))).Controls
-'                        If TypeOf ctrl Is OptionButton Then
-'                            If ctrl.hWnd = lParam Then ctrl.Value = True
-'                        End If
-'                    Next ctrl
-'                End If
-'            End If
     End Select
     
     PageDlgProc = 0&
+End Function
+
+Private Function PropSheetCallback(ByVal hWnd As Long, ByVal uMsg As Long, ByVal lParam As Long) As Long
+    Select Case uMsg
+        Case PSCB_INITIALIZED
+            OldSheetProc = SetWindowLong(hWnd, GWL_WNDPROC, AddressOf SheetWndProc)
+    End Select
+    
+    PropSheetCallback = 0&
 End Function
 
 Private Sub SetValue(ByRef Dest As Long, ByVal Value As Long)
     Dest = Value
 End Sub
 
-Sub ShowPropertySheet(Parent As Form, Title As String, ParamArray Pages())
+Sub ShowPropertySheetEx(Parent As Form, Title As String, ParamArray Pages())
+    If IsArray(Pages(0)) Then Pages = Pages(0)
+    
     Dim psp As PROPSHEETPAGE
     Dim pspHandle As Long
     Dim psh As PROPSHEETHEADER
@@ -382,17 +455,20 @@ Sub ShowPropertySheet(Parent As Form, Title As String, ParamArray Pages())
     Set PageForms = New Collection
     Set hdlgMap = New Collection
     Set Forms = New Collection
+    DialogWidth = 0&: DialogHeight = 0&
     Dim hMems As New Collection
     
     Dim i As Byte
     For i = 0 To UBound(Pages) Step 4
         Dim hMem As Long, pMem As Long
         Dim dlg As DLGTEMPLATE
-        dlg.Style = WS_CHILD And DS_CONTROL
+        dlg.Style = WS_CHILD 'Or DS_CONTROL
         'dlg.dwExtendedStyle = 0&
         'dlg.cdit = 0&
         'dlg.X = 0&
         'dlg.Y = 0&
+        If DialogWidth < Pages(i + 2) Then DialogWidth = Pages(i + 2)
+        If DialogHeight < Pages(i + 3) Then DialogHeight = Pages(i + 3)
         dlg.CX = PixelsToDialogUnits(Pages(i + 2) \ Screen.TwipsPerPixelX, 0)
         dlg.CY = PixelsToDialogUnits(Pages(i + 3) \ Screen.TwipsPerPixelY, 1)
         hMem = GlobalAlloc(&H40&, LenB(dlg) + 256)
@@ -415,13 +491,14 @@ Sub ShowPropertySheet(Parent As Form, Title As String, ParamArray Pages())
     Next i
     
     psh.dwSize = LenB(psh)
-    'psh.dwFlags = PSH_PROPTITLE
+    psh.dwFlags = PSH_USECALLBACK 'Or PSH_PROPTITLE
     psh.hwndParent = Parent.hWnd
     psh.hInstance = App.hInstance
     psh.pszCaption = Title
     psh.nPages = UBound(Pages) / 4 + 1&
     psh.nStartPage = 0&
     psh.phpage = VarPtr(pspArray(0))
+    SetValue psh.pfnCallback, AddressOf PropSheetCallback
     
     PropertySheet psh
     
@@ -430,4 +507,16 @@ Sub ShowPropertySheet(Parent As Form, Title As String, ParamArray Pages())
         hMems.Remove 1
         Unload Pages(i)
     Next i
+End Sub
+
+Sub ShowPropertySheet(Parent As Form, Title As String, ParamArray Pages())
+    Dim NewPages(), i As Byte
+    ReDim NewPages(0 To (UBound(Pages) + 1) * 4 - 1)
+    For i = 0 To UBound(Pages)
+        Set NewPages(i * 4) = Pages(i)
+        NewPages(i * 4 + 1) = Pages(i).Caption
+        NewPages(i * 4 + 2) = Pages(i).ScaleWidth
+        NewPages(i * 4 + 3) = Pages(i).ScaleHeight
+    Next i
+    ShowPropertySheetEx Parent, Title, NewPages
 End Sub

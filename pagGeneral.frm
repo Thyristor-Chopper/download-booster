@@ -2,10 +2,10 @@ VERSION 5.00
 Begin VB.Form pagGeneral 
    BorderStyle     =   3  '크기 고정 대화 상자
    Caption         =   "일반"
-   ClientHeight    =   5145
+   ClientHeight    =   5115
    ClientLeft      =   45
    ClientTop       =   435
-   ClientWidth     =   7050
+   ClientWidth     =   7020
    BeginProperty Font 
       Name            =   "굴림"
       Size            =   9
@@ -16,11 +16,12 @@ Begin VB.Form pagGeneral
       Strikethrough   =   0   'False
    EndProperty
    Icon            =   "pagGeneral.frx":0000
+   KeyPreview      =   -1  'True
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
-   ScaleHeight     =   5145
-   ScaleWidth      =   7050
+   ScaleHeight     =   5115
+   ScaleWidth      =   7020
    ShowInTaskbar   =   0   'False
    StartUpPosition =   3  'Windows 기본값
    Begin VB.Frame fDownload 
@@ -47,7 +48,7 @@ Begin VB.Form pagGeneral
          Width           =   2655
       End
       Begin VB.CheckBox chkAlwaysResume 
-         Caption         =   "항상 이어받기(&A)"
+         Caption         =   "항상 이어받기(&E)"
          Height          =   255
          Left            =   3720
          TabIndex        =   4
@@ -228,7 +229,7 @@ Begin VB.Form pagGeneral
          Width           =   2535
       End
       Begin VB.CheckBox chkShowProgressInTaskbar 
-         Caption         =   "작업 표시줄에 다운로드 진행률 표시(&R)"
+         Caption         =   "작업 표시줄에 다운로드 진행률 표시(&K)"
          Height          =   255
          Left            =   840
          TabIndex        =   19
@@ -311,6 +312,7 @@ Begin VB.Form pagGeneral
          Height          =   270
          Left            =   4200
          TabIndex        =   25
+         Tag             =   "nobackcolorchange"
          Top             =   1845
          Width           =   1575
       End
@@ -324,7 +326,9 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Dim Loaded As Boolean
+Dim GlassChanged As Boolean
 Dim FontChanged As Boolean
+Dim ScrollChanged As Boolean
 
 Implements IBSSubclass
 
@@ -359,7 +363,7 @@ Private Function IBSSubclass_WindowProc(ByVal hWnd As Long, ByVal uMsg As Long, 
 End Function
 
 Sub Initialize()
-    'InitForm Me
+    InitForm Me, True
     Loaded = False
     FontChanged = False
 
@@ -422,7 +426,7 @@ Sub Initialize()
     tr fInterface, "Interface"
     tr chkOpenWhenComplete, "&Open file when complete"
     tr chkOpenDirWhenComplete, "O&pen folder when complete"
-    tr chkAlwaysResume, "&Always resume"
+    tr chkAlwaysResume, "Always r&esume"
     tr chkAutoRetry, "A&uto retry on error"
     tr Label3, "If filename alrea&dy exists:"
     tr Label14, "Ma&x. number of threads:"
@@ -439,7 +443,7 @@ Sub Initialize()
     tr optLinePerScroll, "Per li&ne"
     tr optScreenPerScroll, "Pe&r screen"
     tr Label9, "S&tartup position:"
-    tr chkShowProgressInTaskbar, "Show p&rogress in taskbar"
+    tr chkShowProgressInTaskbar, "Show progress in tas&kbar"
     
 #If HIDEYTDL Then
     chkAutoYtdl.Visible = False

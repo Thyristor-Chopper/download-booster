@@ -789,7 +789,7 @@ errhandle:
     ExtendDWMFrame = -1&
 End Function
 
-Sub SetFormBackgroundColor(frmForm As Form, Optional DisableClassicTheme As Boolean = False, Optional OverrideBackColor As Long = -1&)
+Sub SetFormBackgroundColor(frmForm As Form, Optional DisableClassicTheme As Boolean = False, Optional OverrideBackColor As Long = -1&, Optional NoForeColor As Boolean = False)
     Dim clrBackColor As Long
     Dim clrForeColor As Long
     Dim DisableVisualStyle As Boolean
@@ -812,17 +812,19 @@ Sub SetFormBackgroundColor(frmForm As Form, Optional DisableClassicTheme As Bool
         End If
     End If
     Dim IsSystemColor As Boolean
-    clrForeColor = GetSetting("DownloadBooster", "Options", "ForeColor", -1)
-    IsSystemColor = (clrForeColor = -1)
-    If clrForeColor < 0& Or clrForeColor > 16777215 Then
-        If frmForm.ForeColor <> &H80000012 Then frmForm.ForeColor = &H80000012
-        clrForeColor = &H80000012
-    ElseIf GetSetting("DownloadBooster", "Options", "ForeColorMainOnly", 0) <> 0 And (Not frmForm Is frmMain) Then
-        frmForm.ForeColor = &H80000012
-        clrForeColor = &H80000012
-        IsSystemColor = True
-    Else
-        frmForm.ForeColor = clrForeColor
+    If NoForeColor = False Then
+        clrForeColor = GetSetting("DownloadBooster", "Options", "ForeColor", -1)
+        IsSystemColor = (clrForeColor = -1)
+        If clrForeColor < 0& Or clrForeColor > 16777215 Then
+            If frmForm.ForeColor <> &H80000012 Then frmForm.ForeColor = &H80000012
+            clrForeColor = &H80000012
+        ElseIf GetSetting("DownloadBooster", "Options", "ForeColorMainOnly", 0) <> 0 And (Not frmForm Is frmMain) Then
+            frmForm.ForeColor = &H80000012
+            clrForeColor = &H80000012
+            IsSystemColor = True
+        Else
+            frmForm.ForeColor = clrForeColor
+        End If
     End If
 
     On Error Resume Next
@@ -844,7 +846,7 @@ Sub SetFormBackgroundColor(frmForm As Form, Optional DisableClassicTheme As Bool
                     End If
                 Else
                     If (Not DisableVisualStyle) Then
-                        If ctrl.Tag <> "nocolorchange" And ctrl.Tag <> "nocolorsizechange" And (Not IsSystemColor) And (TypeOf ctrl Is FrameW Or TypeOf ctrl Is CheckBoxW Or TypeOf ctrl Is OptionButton Or TypeOf ctrl Is CheckBox Or TypeOf ctrl Is Frame) Then
+                        If NoForeColor = False And ctrl.Tag <> "nocolorchange" And ctrl.Tag <> "nocolorsizechange" And (Not IsSystemColor) And (TypeOf ctrl Is FrameW Or TypeOf ctrl Is CheckBoxW Or TypeOf ctrl Is OptionButton Or TypeOf ctrl Is CheckBox Or TypeOf ctrl Is Frame) Then
                             RemoveVisualStyles ctrl.hWnd
                             ctrl.VisualStyles = False
                             ctrl.RoundButton = RoundButton
@@ -860,7 +862,7 @@ Sub SetFormBackgroundColor(frmForm As Form, Optional DisableClassicTheme As Bool
                 End If
             End If
             If TypeOf ctrl Is DriveListBox Or TypeOf ctrl Is FileListBox Or TypeOf ctrl Is DirListBox Or TypeOf ctrl Is TextBox Or TypeOf ctrl Is ComboBox Or TypeOf ctrl Is ListView Or TypeOf ctrl Is ListBox Then GoTo nextfor
-            If ctrl.Tag <> "nocolorchange" And ctrl.Tag <> "nocolorsizechange" And ctrl.ForeColor <> clrForeColor Then
+            If NoForeColor = False And ctrl.Tag <> "nocolorchange" And ctrl.Tag <> "nocolorsizechange" And ctrl.ForeColor <> clrForeColor Then
                 ctrl.ForeColor = clrForeColor
                 If (Not IsSystemColor) And (TypeOf ctrl Is FrameW Or TypeOf ctrl Is CheckBoxW Or TypeOf ctrl Is OptionButton Or TypeOf ctrl Is Frame Or TypeOf ctrl Is CheckBox) Then
                     If Not (TypeOf ctrl Is PictureBox) Then RemoveVisualStyles ctrl.hWnd
@@ -2305,10 +2307,10 @@ Sub NextTabPage(ByRef tsTabStrip As TabStrip, Optional ByVal Reverse As Boolean 
     tsTabStrip.Tabs(c).Selected = True
 End Sub
 
-Sub InitForm(ByRef frmForm As Form)
+Sub InitForm(ByRef frmForm As Form, Optional NoColor As Boolean = False)
     On Error Resume Next
     If GetSetting("DownloadBooster", "Options", "DisableDWMWindow", DefaultDisableDWMWindow) <> 0 And GetSetting("DownloadBooster", "Options", "UseAeroWindow", 0) = 0 Then DisableDWMWindow frmForm.hWnd
-    SetFormBackgroundColor frmForm
+    If NoColor = False Then SetFormBackgroundColor frmForm
     SetFont frmForm
     If MainFormOnTop Then SetWindowPos frmForm.hWnd, hWnd_TOPMOST, 0&, 0&, 0&, 0&, SWP_NOMOVE Or SWP_NOSIZE
     'If frmForm.BorderStyle = 2 Then Set frmForm.Icon = frmMain.Icon

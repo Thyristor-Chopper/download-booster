@@ -93,7 +93,7 @@ Begin VB.Form pagConnection
          Height          =   450
          Left            =   3000
          TabIndex        =   5
-         Top             =   720
+         Top             =   735
          Width           =   2055
          _ExtentX        =   3625
          _ExtentY        =   794
